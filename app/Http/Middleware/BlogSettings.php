@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class AdminBlogSettings
+class BlogSettings
 {
     /**
      * Handle an incoming request.
@@ -16,11 +16,11 @@ class AdminBlogSettings
      */
     public function handle(Request $request, Closure $next)
     {
-	$routeName = $request->route()->getName();
+        $routeName = $request->route()->getName();
 
-	if ($routeName == 'admin.blog.settings.index' && !auth()->user()->isAllowedTo('blog-settings')) {
-	    return redirect()->route('admin')->with('error', __('messages.generic.access_not_auth'));
-	}
+        if ($routeName == 'blog.settings.index' && !auth()->user()->isAllowedTo('blog-settings')) {
+            return redirect()->route('index')->with('error', __('messages.generic.access_not_auth'));
+        }
 
         return $next($request);
     }

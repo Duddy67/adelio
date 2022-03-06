@@ -76,5 +76,8 @@ class Kernel extends HttpKernel
         'users.roles' => \App\Http\Middleware\UsersRoles::class,
         'users.groups' => \App\Http\Middleware\UsersGroups::class,
         'users.permissions' => \App\Http\Middleware\UsersPermissions::class,
+        'blog.posts' => \App\Http\Middleware\BlogPosts::class,
+        'blog.categories' => \App\Http\Middleware\BlogCategories::class,
+        'blog.settings' => \App\Http\Middleware\BlogSettings::class,
     ];
 }
