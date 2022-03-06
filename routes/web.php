@@ -11,16 +11,11 @@ use App\Http\Controllers\Users\UserController;
 use App\Http\Controllers\Users\RoleController;
 use App\Http\Controllers\Users\PermissionController;
 use App\Http\Controllers\Users\GroupController;
-use App\Http\Controllers\Admin\Settings\GeneralController;
-use App\Http\Controllers\Admin\Settings\EmailController;
+use App\Http\Controllers\Settings\GeneralController;
+use App\Http\Controllers\Settings\EmailController;
 use App\Http\Controllers\Cms\FileManagerController;
 use App\Http\Controllers\Cms\FileController;
-//use App\Http\Controllers\Admin\Blog\PostController as AdminPostController;
-//use App\Http\Controllers\Admin\Blog\CategoryController as AdminBlogCategoryController;
-//use App\Http\Controllers\Blog\PostController;
-//use App\Http\Controllers\Blog\CategoryController as BlogCategoryController;
-//use App\Http\Controllers\Admin\Blog\SettingController as AdminBlogSettingController;
-use App\Http\Controllers\Blog\PostController as PostController;
+use App\Http\Controllers\Blog\PostController;
 use App\Http\Controllers\Blog\CategoryController as BlogCategoryController;
 use App\Http\Controllers\Blog\SettingController as BlogSettingController;
 use App\Http\Controllers\Admin\Menus\MenuController;
@@ -145,8 +140,20 @@ Route::prefix('blog')->group(function () {
     Route::patch('/settings', [BlogSettingController::class, 'update'])->name('blog.settings.update');
 });
 
+Route::prefix('settings')->group(function () {
+    // General settings
+    Route::get('/general', [GeneralController::class, 'index'])->name('settings.general.index');
+    Route::patch('/general', [GeneralController::class, 'update'])->name('settings.general.update');
 
-	// Users
+    // Emails
+	Route::controller(EmailController::class)->group(function () {
+        Route::delete('/emails', 'massDestroy')->name('settings.emails.massDestroy');
+        Route::get('/emails/cancel/{email?}', 'cancel')->name('settings.emails.cancel');
+        Route::put('/emails/checkin', 'massCheckIn')->name('settings.emails.massCheckIn');
+        Route::resource('emails', EmailController::class, ['as' => 'settings'])->except(['show']);
+	});
+});
+
 Route::prefix('admin')->group(function () {
 
     Route::middleware(['admin'])->group(function () {
@@ -157,32 +164,6 @@ Route::prefix('admin')->group(function () {
 	Route::delete('/files', [FileController::class, 'massDestroy'])->name('admin.files.massDestroy');
 	Route::get('/files/batch', [FileController::class, 'batch'])->name('admin.files.batch');
 	Route::put('/files/batch', [FileController::class, 'massUpdate'])->name('admin.files.massUpdate');
-
-	/*Route::prefix('blog')->group(function () {
-	    // Posts
-	    //Route::delete('/posts', [AdminPostController::class, 'massDestroy'])->name('admin.blog.posts.massDestroy');
-	    //Route::get('/posts/batch', [AdminPostController::class, 'batch'])->name('admin.blog.posts.batch');
-	    //Route::put('/posts/batch', [AdminPostController::class, 'massUpdate'])->name('admin.blog.posts.massUpdate');
-	    //Route::get('/posts/cancel/{post?}', [AdminPostController::class, 'cancel'])->name('admin.blog.posts.cancel');
-	    //Route::put('/posts/checkin', [AdminPostController::class, 'massCheckIn'])->name('admin.blog.posts.massCheckIn');
-	    //Route::put('/posts/publish', [AdminPostController::class, 'massPublish'])->name('admin.blog.posts.massPublish');
-	    //Route::put('/posts/unpublish', [AdminPostController::class, 'massUnpublish'])->name('admin.blog.posts.massUnpublish');
-	    //Route::get('/posts/{post}/edit/{tab?}', [AdminPostController::class, 'edit'])->name('admin.blog.posts.edit');
-	    //Route::resource('posts', AdminPostController::class, ['as' => 'admin.blog'])->except(['show', 'edit']);
-	    // Categories
-	    Route::delete('/categories', [AdminBlogCategoryController::class, 'massDestroy'])->name('admin.blog.categories.massDestroy');
-	    Route::get('/categories/cancel/{category?}', [AdminBlogCategoryController::class, 'cancel'])->name('admin.blog.categories.cancel');
-	    Route::put('/categories/checkin', [AdminBlogCategoryController::class, 'massCheckIn'])->name('admin.blog.categories.massCheckIn');
-	    Route::put('/categories/publish', [AdminBlogCategoryController::class, 'massPublish'])->name('admin.blog.categories.massPublish');
-	    Route::put('/categories/unpublish', [AdminBlogCategoryController::class, 'massUnpublish'])->name('admin.blog.categories.massUnpublish');
-	    Route::get('/categories/{category}/up', [AdminBlogCategoryController::class, 'up'])->name('admin.blog.categories.up');
-	    Route::get('/categories/{category}/down', [AdminBlogCategoryController::class, 'down'])->name('admin.blog.categories.down');
-	    Route::get('/categories/{category}/edit/{tab?}', [AdminBlogCategoryController::class, 'edit'])->name('admin.blog.categories.edit');
-	    Route::resource('categories', AdminBlogCategoryController::class, ['as' => 'admin.blog'])->except(['show', 'edit']);
-	    // Settings
-	    Route::get('/settings/{tab?}', [AdminBlogSettingController::class, 'index'])->name('admin.blog.settings.index');
-	    Route::patch('/settings', [AdminBlogSettingController::class, 'update'])->name('admin.blog.settings.update');
-	});*/
 
 	Route::prefix('menus')->group(function () {
 	    // Menus 
@@ -208,7 +189,7 @@ Route::prefix('admin')->group(function () {
 	    Route::delete('/{code}/menuitems/{menuItem}', [MenuItemController::class, 'destroy'])->name('admin.menus.menuitems.destroy');
 	});
 
-	Route::prefix('settings')->group(function () {
+	/*Route::prefix('settings')->group(function () {
 	    Route::get('/general', [GeneralController::class, 'index'])->name('admin.settings.general.index');
 	    Route::patch('/general', [GeneralController::class, 'update'])->name('admin.settings.general.update');
 	    // Emails
@@ -216,7 +197,7 @@ Route::prefix('admin')->group(function () {
 	    Route::get('/emails/cancel/{email?}', [EmailController::class, 'cancel'])->name('admin.settings.emails.cancel');
 	    Route::put('/emails/checkin', [EmailController::class, 'massCheckIn'])->name('admin.settings.emails.massCheckIn');
 	    Route::resource('emails', EmailController::class, ['as' => 'admin.settings'])->except(['show']);
-	});
+	});*/
     });
 });
 

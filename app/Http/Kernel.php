@@ -64,8 +64,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         // Backend CMS
         'admin' => \App\Http\Middleware\Admin::class,
-        'admin.settings.general' => \App\Http\Middleware\AdminSettingsGeneral::class,
-        'admin.settings.emails' => \App\Http\Middleware\AdminSettingsEmails::class,
+        //'admin.settings.general' => \App\Http\Middleware\AdminSettingsGeneral::class,
+        //'admin.settings.emails' => \App\Http\Middleware\AdminSettingsEmails::class,
         'admin.blog.posts' => \App\Http\Middleware\AdminBlogPosts::class,
         'admin.blog.categories' => \App\Http\Middleware\AdminBlogCategories::class,
         'admin.blog.settings' => \App\Http\Middleware\AdminBlogSettings::class,
@@ -79,5 +79,7 @@ class Kernel extends HttpKernel
         'blog.posts' => \App\Http\Middleware\BlogPosts::class,
         'blog.categories' => \App\Http\Middleware\BlogCategories::class,
         'blog.settings' => \App\Http\Middleware\BlogSettings::class,
+        'settings.general' => \App\Http\Middleware\SettingsGeneral::class,
+        'settings.emails' => \App\Http\Middleware\SettingsEmails::class,
     ];
 }

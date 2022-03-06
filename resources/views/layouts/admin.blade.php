@@ -190,23 +190,23 @@ scratch. This page gets rid of all links and provides the needed markup only.
 	  @endallowto
 
 	  @allowtoany (['global-settings', 'blog-settings', 'update-email'])
-	      @php $open = (request()->is('admin/settings*')) ? 'menu-open' : '' @endphp
+	      @php $open = (request()->is('settings*')) ? 'menu-open' : '' @endphp
 	      <li class="nav-item {{ $open }}">
-		  @php $active = (request()->is('admin/settings*')) ? 'active' : '' @endphp
+		  @php $active = (request()->is('settings*')) ? 'active' : '' @endphp
 		  <a href="#" class="nav-link {{ $active }}">
 		    <i class="nav-icon fas fa-cogs"></i>
 		    <p>@lang ('labels.title.settings')<i class="right fas fa-angle-left"></i></p>
 		  </a>
 		  <ul class="nav nav-treeview">
 			@allowto ('global-settings')
-			    @php $active = (request()->is('admin/settings/general*')) ? true : false @endphp
-			    <x-menu-item href="{{ route('admin.settings.general.index') }}" :sub=true :active="$active">
+			    @php $active = (request()->is('settings/general*')) ? true : false @endphp
+			    <x-menu-item href="{{ route('settings.general.index') }}" :sub=true :active="$active">
 			      @lang ('labels.title.general')
 			    </x-menu-item>
 			@endallowto
 			@allowto ('update-email')
-			    @php $active = (request()->is('admin/settings/emails*')) ? true : false @endphp
-			    <x-menu-item href="{{ route('admin.settings.emails.index') }}" :sub=true :active="$active">
+			    @php $active = (request()->is('settings/emails*')) ? true : false @endphp
+			    <x-menu-item href="{{ route('settings.emails.index') }}" :sub=true :active="$active">
 			      @lang ('labels.title.emails')
 			    </x-menu-item>
 			@endallowto
