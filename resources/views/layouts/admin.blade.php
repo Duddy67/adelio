@@ -101,33 +101,33 @@ scratch. This page gets rid of all links and provides the needed markup only.
 	      </a>
           </li>
 	  @allowto ('create-user')
-	      @php $open = (request()->is('admin/users*')) ? 'menu-open' : '' @endphp
+	      @php $open = (request()->is('users*')) ? 'menu-open' : '' @endphp
 	      <li class="nav-item {{ $open }}">
-		  @php $active = (request()->is('admin/users*')) ? 'active' : '' @endphp
+		  @php $active = (request()->is('users*')) ? 'active' : '' @endphp
 		  <a href="#" class="nav-link {{ $active }}">
 		    <i class="nav-icon fas fa-users"></i>
 		    <p>@lang ('labels.title.user_management')<i class="right fas fa-angle-left"></i></p>
 		  </a>
 		  <ul class="nav nav-treeview">
-			@php $active = (request()->is('admin/users/users*')) ? true : false @endphp
-			<x-menu-item href="{{ route('admin.users.users.index') }}" :sub=true :active="$active">
+			@php $active = (request()->is('users/users*')) ? true : false @endphp
+			<x-menu-item href="{{ route('users.users.index') }}" :sub=true :active="$active">
 			  @lang ('labels.title.users')
 			</x-menu-item>
 		    @allowto ('create-group')
-			@php $active = (request()->is('admin/users/groups*')) ? true : false @endphp
-			<x-menu-item href="{{ route('admin.users.groups.index') }}" :sub=true :active="$active">
+			@php $active = (request()->is('users/groups*')) ? true : false @endphp
+			<x-menu-item href="{{ route('users.groups.index') }}" :sub=true :active="$active">
 			  @lang ('labels.title.groups')
 			</x-menu-item>
 		    @endallowto
 		    @allowto ('create-role')
-			@php $active = (request()->is('admin/users/roles*')) ? true : false @endphp
-			<x-menu-item href="{{ route('admin.users.roles.index') }}" :sub=true :active="$active">
+			@php $active = (request()->is('users/roles*')) ? true : false @endphp
+			<x-menu-item href="{{ route('users.roles.index') }}" :sub=true :active="$active">
 			  @lang ('labels.title.roles')
 			</x-menu-item>
 		    @endallowto
 		    @if (auth()->user()->hasRole('super-admin'))
-			@php $active = (request()->is('admin/users/permissions*')) ? true : false @endphp
-			<x-menu-item href="{{ route('admin.users.permissions.index') }}" :sub=true :active="$active">
+			@php $active = (request()->is('users/permissions*')) ? true : false @endphp
+			<x-menu-item href="{{ route('users.permissions.index') }}" :sub=true :active="$active">
 			  @lang ('labels.title.permissions')
 			</x-menu-item>
 		    @endif

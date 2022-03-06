@@ -7,10 +7,10 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\Users\UserController;
-use App\Http\Controllers\Admin\Users\RoleController;
-use App\Http\Controllers\Admin\Users\PermissionController;
-use App\Http\Controllers\Admin\Users\GroupController;
+use App\Http\Controllers\Users\UserController;
+use App\Http\Controllers\Users\RoleController;
+use App\Http\Controllers\Users\PermissionController;
+use App\Http\Controllers\Users\GroupController;
 use App\Http\Controllers\Admin\Settings\GeneralController;
 use App\Http\Controllers\Admin\Settings\EmailController;
 use App\Http\Controllers\Cms\FileManagerController;
@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\Menus\MenuController;
 use App\Http\Controllers\Admin\Menus\MenuItemController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\Api\TokenController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -69,6 +71,46 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 });
 
+Route::prefix('users')->group(function () {
+	// Users
+	Route::controller(UserController::class)->group(function () {
+		Route::delete('/users', 'massDestroy')->name('users.users.massDestroy');
+		Route::get('/users/batch', 'batch')->name('users.users.batch');
+		Route::put('/users/batch', 'massUpdate')->name('users.users.massUpdate');
+		Route::get('/users/cancel/{user?}', 'cancel')->name('users.users.cancel');
+		Route::put('/users/checkin', 'massCheckIn')->name('users.users.massCheckIn');
+		Route::get('/users', 'index')->name('users.users');
+		Route::resource('users', UserController::class, ['as' => 'users'])->except(['show']);
+
+	});
+
+	// Roles
+	Route::controller(RoleController::class)->group(function () {
+		Route::delete('/roles', 'massDestroy')->name('users.roles.massDestroy');
+		Route::get('/roles/cancel/{role?}', 'cancel')->name('users.roles.cancel');
+		Route::put('/roles/checkin', 'massCheckIn')->name('users.roles.massCheckIn');
+		Route::resource('roles', RoleController::class, ['as' => 'users'])->except(['show']);
+	});
+
+	// Groups
+	Route::controller(GroupController::class)->group(function () {
+	    Route::delete('/groups', 'massDestroy')->name('users.groups.massDestroy');
+	    Route::get('/groups/batch', 'batch')->name('users.groups.batch');
+	    Route::put('/groups/batch', 'massUpdate')->name('users.groups.massUpdate');
+	    Route::get('/groups/cancel/{group?}', 'cancel')->name('users.groups.cancel');
+	    Route::put('/groups/checkin', 'massCheckIn')->name('users.groups.massCheckIn');
+	    Route::resource('groups', GroupController::class, ['as' => 'users'])->except(['show']);
+	});
+
+	// Permissions
+	Route::controller(PermissionController::class)->group(function () {
+	    Route::get('/permissions', 'index')->name('users.permissions.index');
+	    Route::patch('/permissions', 'build')->name('users.permissions.build');
+	    Route::put('/permissions', 'rebuild')->name('users.permissions.rebuild');
+	});
+
+});
+
 Route::prefix('admin')->group(function () {
 
     Route::middleware(['admin'])->group(function () {
@@ -79,32 +121,6 @@ Route::prefix('admin')->group(function () {
 	Route::delete('/files', [FileController::class, 'massDestroy'])->name('admin.files.massDestroy');
 	Route::get('/files/batch', [FileController::class, 'batch'])->name('admin.files.batch');
 	Route::put('/files/batch', [FileController::class, 'massUpdate'])->name('admin.files.massUpdate');
-
-	Route::prefix('users')->group(function () {
-	    // Users
-	    Route::delete('/users', [UserController::class, 'massDestroy'])->name('admin.users.users.massDestroy');
-	    Route::get('/users/batch', [UserController::class, 'batch'])->name('admin.users.users.batch');
-	    Route::put('/users/batch', [UserController::class, 'massUpdate'])->name('admin.users.users.massUpdate');
-	    Route::get('/users/cancel/{user?}', [UserController::class, 'cancel'])->name('admin.users.users.cancel');
-	    Route::put('/users/checkin', [UserController::class, 'massCheckIn'])->name('admin.users.users.massCheckIn');
-	    Route::resource('users', UserController::class, ['as' => 'admin.users'])->except(['show']);
-	    // Groups
-	    Route::delete('/groups', [GroupController::class, 'massDestroy'])->name('admin.users.groups.massDestroy');
-	    Route::get('/groups/batch', [GroupController::class, 'batch'])->name('admin.users.groups.batch');
-	    Route::put('/groups/batch', [GroupController::class, 'massUpdate'])->name('admin.users.groups.massUpdate');
-	    Route::get('/groups/cancel/{group?}', [GroupController::class, 'cancel'])->name('admin.users.groups.cancel');
-	    Route::put('/groups/checkin', [GroupController::class, 'massCheckIn'])->name('admin.users.groups.massCheckIn');
-	    Route::resource('groups', GroupController::class, ['as' => 'admin.users'])->except(['show']);
-	    // Roles
-	    Route::delete('/roles', [RoleController::class, 'massDestroy'])->name('admin.users.roles.massDestroy');
-	    Route::get('/roles/cancel/{role?}', [RoleController::class, 'cancel'])->name('admin.users.roles.cancel');
-	    Route::put('/roles/checkin', [RoleController::class, 'massCheckIn'])->name('admin.users.roles.massCheckIn');
-	    Route::resource('roles', RoleController::class, ['as' => 'admin.users'])->except(['show']);
-	    // Permissions
-	    Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.users.permissions.index');
-	    Route::patch('/permissions', [PermissionController::class, 'build'])->name('admin.users.permissions.build');
-	    Route::put('/permissions', [PermissionController::class, 'rebuild'])->name('admin.users.permissions.rebuild');
-	});
 
 	Route::prefix('blog')->group(function () {
 	    // Posts
