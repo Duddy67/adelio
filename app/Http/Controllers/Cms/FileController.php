@@ -37,7 +37,7 @@ class FileController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-	$this->model = new Document;
+        $this->model = new Document;
     }
 
     /**
@@ -50,14 +50,14 @@ class FileController extends Controller
         $columns = $this->getColumns();
         $actions = $this->getActions('list');
         $filters = $this->getFilters($request);
-	$items = $this->model->getAllFileManagerItems($request);
-	$rows = $this->getRows($columns, $items, ['preview']);
-	$this->setRowValues($rows, $columns, $items);
-	$query = $request->query();
+        $items = $this->model->getAllFileManagerItems($request);
+        $rows = $this->getRows($columns, $items, ['preview']);
+        $this->setRowValues($rows, $columns, $items);
+        $query = $request->query();
 
-	$url = ['route' => 'admin.files', 'item_name' => 'document', 'query' => $query];
+        $url = ['route' => 'files', 'item_name' => 'document', 'query' => $query];
 
-        return view('admin.files.list', compact('items', 'columns', 'actions', 'rows', 'query', 'url', 'filters'));
+        return view('files.list', compact('items', 'columns', 'actions', 'rows', 'query', 'url', 'filters'));
     }
 
     /**
@@ -70,10 +70,10 @@ class FileController extends Controller
     {
         $fields = $this->getSpecificFields(['owned_by']);
         $actions = $this->getActions('batch');
-	$query = $request->query();
-	$route = 'admin.files';
+        $query = $request->query();
+        $route = 'files';
 
-        return view('admin.share.batch', compact('fields', 'actions', 'query', 'route'));
+        return view('share.batch', compact('fields', 'actions', 'query', 'route'));
     }
 
     /**
@@ -85,32 +85,32 @@ class FileController extends Controller
     public function massUpdate(Request $request)
     {
         $updates = 0;
-	$messages = [];
+        $messages = [];
 
         foreach ($request->input('ids') as $key => $id) {
-	    $document = Document::findOrFail($id);
+            $document = Document::findOrFail($id);
 
-	    if (!$owner = User::find($document->owned_by)) {
-		$messages['error'] = __('messages.users.unknown_user');
-		break;
-	    }
+            if (!$owner = User::find($document->owned_by)) {
+                $messages['error'] = __('messages.users.unknown_user');
+                break;
+            }
 
-	    if (auth()->user()->getRoleLevel() < $owner->getRoleLevel()) {
-		$messages['error'] = __('messages.generic.edit_not_auth');
-		break;
-	    }
+            if (auth()->user()->getRoleLevel() < $owner->getRoleLevel()) {
+                $messages['error'] = __('messages.generic.edit_not_auth');
+                break;
+            }
 
-	    $document->owned_by = $request->input('owned_by');
-	    $document->save();
+            $document->owned_by = $request->input('owned_by');
+            $document->save();
 
-	    $updates++;
-	}
+            $updates++;
+        }
 
-	if ($updates) {
-	    $messages['success'] = __('messages.generic.mass_update_success', ['number' => $updates]);
-	}
+        if ($updates) {
+            $messages['success'] = __('messages.generic.mass_update_success', ['number' => $updates]);
+        }
 
-	return redirect()->route('admin.files.index')->with($messages);
+        return redirect()->route('files.index')->with($messages);
     }
 
     /**
@@ -125,23 +125,22 @@ class FileController extends Controller
 
         // Remove the documents selected from the list.
         foreach ($request->input('ids') as $id) {
-	    $document = Document::findOrFail($id);
-	    $owner = User::find($document->owned_by);
+            $document = Document::findOrFail($id);
+            $owner = User::find($document->owned_by);
 
-	    if ($owner && auth()->user()->getRoleLevel() < $owner->getRoleLevel()) {
-		return redirect()->route('admin.files.index', $request->query())->with(
-		    [
-			'error' => __('messages.generic.delete_not_auth'), 
-			'success' => __('messages.generic.mass_delete_success', ['number' => $deleted])
-		    ]);
-	    }
+            if ($owner && auth()->user()->getRoleLevel() < $owner->getRoleLevel()) {
+                return redirect()->route('files.index', $request->query())->with([
+                    'error' => __('messages.generic.delete_not_auth'), 
+                    'success' => __('messages.generic.mass_delete_success', ['number' => $deleted])
+                ]);
+            }
 
-	    $document->delete();
+            $document->delete();
 
-	    $deleted++;
-	}
+            $deleted++;
+        }
 
-	return redirect()->route('admin.files.index', $request->query())->with('success', __('messages.generic.mass_delete_success', ['number' => $deleted]));
+        return redirect()->route('files.index', $request->query())->with('success', __('messages.generic.mass_delete_success', ['number' => $deleted]));
     }
 
     /*
@@ -155,15 +154,15 @@ class FileController extends Controller
     private function setRowValues(&$rows, $columns, $documents)
     {
         foreach ($documents as $key => $document) {
-	    foreach ($columns as $column) {
-	        if ($column->name == 'file_name') {
-		    $rows[$key]->file_name = '<a href="'.url('/').$document->getUrl().'" target="_blank">'.$document->file_name.'</a>';
-		}
+            foreach ($columns as $column) {
+                if ($column->name == 'file_name') {
+                    $rows[$key]->file_name = '<a href="'.url('/').$document->getUrl().'" target="_blank">'.$document->file_name.'</a>';
+                }
 
-	        if ($column->name == 'preview') {
-		    $rows[$key]->preview = view('partials.documents.preview', compact('documents', 'key'));
-		}
-	    }
-	}
+                if ($column->name == 'preview') {
+                    $rows[$key]->preview = view('partials.documents.preview', compact('documents', 'key'));
+                }
+            }
+        }
     }
 }

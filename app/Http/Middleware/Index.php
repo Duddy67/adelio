@@ -9,7 +9,7 @@ use App\Models\Settings\General;
 use Cache;
 
 
-class Admin
+class Index 
 {
     /**
      * Handle an incoming request.
@@ -32,6 +32,7 @@ class Admin
             return $next($request);
         }
 
-        return redirect()->route('profile');
+        abort(403);
+        //return redirect()->route('profile');
     }
 }

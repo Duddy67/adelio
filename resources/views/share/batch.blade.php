@@ -21,36 +21,36 @@
 
     <div class="container-fluid">
         <h4>{{ __('labels.generic.batch_title') }}</h4>
-	<form method="post" action="{{ route($route.'.massUpdate', $query) }}" id="batchForm" target="_parent">
-	    @csrf
-	    @method('put')
+        <form method="post" action="{{ route($route.'.massUpdate', $query) }}" id="batchForm" target="_parent">
+            @csrf
+            @method('put')
 
-	    @foreach ($fields as $field)
-		@php $value = null; @endphp
-		<div class="form-group">
-		    <x-input :field="$field" :value="$value" />
+            @foreach ($fields as $field)
+                @php $value = null; @endphp
+                <div class="form-group">
+                    <x-input :field="$field" :value="$value" />
 
-		    @if ($field->name == 'groups')
-			<div class="form-check-inline">
-			    <label class="form-check-label">
-				<input type="radio" class="form-check-input" name="_selected_groups" value="add" checked>{{ __('labels.groups.add_selected_groups') }}
-			    </label>
-			</div>
-			<div class="form-check-inline">
-			    <label class="form-check-label">
-				<input type="radio" class="form-check-input" name="_selected_groups" value="remove">{{ __('labels.groups.remove_selected_groups') }}
-			    </label>
-			</div>
-		    @endif
-		</div>
-	    @endforeach
+                    @if ($field->name == 'groups')
+                        <div class="form-check-inline">
+                            <label class="form-check-label">
+                            <input type="radio" class="form-check-input" name="_selected_groups" value="add" checked>{{ __('labels.groups.add_selected_groups') }}
+                            </label>
+                        </div>
+                        <div class="form-check-inline">
+                            <label class="form-check-label">
+                            <input type="radio" class="form-check-input" name="_selected_groups" value="remove">{{ __('labels.groups.remove_selected_groups') }}
+                            </label>
+                        </div>
+                    @endif
+                </div>
+            @endforeach
 
-	    <input type="hidden" id="itemList" value="{{ route($route.'.index', $query) }}">
-	</form>
+            <input type="hidden" id="itemList" value="{{ route($route.'.index', $query) }}">
+        </form>
 
-	<div class="form-group batch-actions">
-	    <x-toolbar :items=$actions />
-	</div>
+        <div class="form-group batch-actions">
+            <x-toolbar :items=$actions />
+        </div>
     </div>
 
 

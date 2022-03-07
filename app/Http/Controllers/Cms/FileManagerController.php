@@ -35,7 +35,7 @@ class FileManagerController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-	$this->model = new Document;
+        $this->model = new Document;
     }
 
     /**
@@ -47,12 +47,12 @@ class FileManagerController extends Controller
     {
         $columns = $this->getColumns(['owned_by']);
         $filters = $this->getFilters($request, ['owned_by']);
-	$items = $this->model->getFileManagerItems($request);
-	$rows = $this->getRows($columns, $items);
-	$this->setRowValues($rows, $columns, $items);
-	$query = $request->query();
+        $items = $this->model->getFileManagerItems($request);
+        $rows = $this->getRows($columns, $items);
+        $this->setRowValues($rows, $columns, $items);
+        $query = $request->query();
 
-	$url = ['route' => 'cms.filemanager', 'item_name' => 'document', 'query' => $query];
+        $url = ['route' => 'cms.filemanager', 'item_name' => 'document', 'query' => $query];
 
         return view('cms.filemanager.list', compact('items', 'columns', 'rows', 'query', 'url', 'filters'));
     }
@@ -60,28 +60,28 @@ class FileManagerController extends Controller
     public function upload(Request $request)
     {
         if ($request->hasFile('upload') && $request->file('upload')->isValid()) {
-	    $document = new Document;
-	    $document->upload($request->file('upload'), 'user', 'file_manager');
-	    auth()->user()->documents()->save($document);
-	}
+            $document = new Document;
+            $document->upload($request->file('upload'), 'user', 'file_manager');
+            auth()->user()->documents()->save($document);
+        }
 
-	return redirect()->route('cms.filemanager.index')->with('success', __('messages.documents.create_success'));
+        return redirect()->route('cms.filemanager.index')->with('success', __('messages.documents.create_success'));
     }
 
     public function destroy(Request $request)
     {
-	$document = Document::findOrFail($request->input('document_id', null));
+        $document = Document::findOrFail($request->input('document_id', null));
 
-	$name = $document->file_name;
-	$document->delete();
-	$query = $request->query();
+        $name = $document->file_name;
+        $document->delete();
+        $query = $request->query();
 
         if (isset($query['page'])) {
-	    // Reset pagination to the first page.
-	    $query['page'] = 1;
-	}
+            // Reset pagination to the first page.
+            $query['page'] = 1;
+        }
 
-	return redirect()->route('cms.filemanager.index', $query)->with('success', __('messages.documents.delete_success', ['name' => $name]));
+        return redirect()->route('cms.filemanager.index', $query)->with('success', __('messages.documents.delete_success', ['name' => $name]));
     }
 
     /*
@@ -95,15 +95,15 @@ class FileManagerController extends Controller
     private function setRowValues(&$rows, $columns, $documents)
     {
         foreach ($documents as $key => $document) {
-	    foreach ($columns as $column) {
-	        /*if ($column->name == 'file_name') {
-		    $rows[$key]->file_name = '<a href="'.url('/').$document->getUrl().'" target="_blank">'.$document->file_name.'</a>';
-	          }*/
+            foreach ($columns as $column) {
+                /*if ($column->name == 'file_name') {
+                $rows[$key]->file_name = '<a href="'.url('/').$document->getUrl().'" target="_blank">'.$document->file_name.'</a>';
+                }*/
 
-	        if ($column->name == 'preview') {
-		    $rows[$key]->preview = view('partials.documents.preview', compact('documents', 'key'));
-		}
-	    }
-	}
+                if ($column->name == 'preview') {
+                    $rows[$key]->preview = view('partials.documents.preview', compact('documents', 'key'));
+                }
+            }
+        }
     }
 }

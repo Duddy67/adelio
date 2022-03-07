@@ -34,9 +34,6 @@ scratch. This page gets rid of all links and provides the needed markup only.
       <li class="nav-item">
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a href="{{ route('site.index') }}" class="nav-link" target="_blank">Home</a>
-      </li>
       <!--<li class="nav-item d-none d-sm-inline-block">
         <a href="#" class="nav-link">Contact</a>
       </li>-->
@@ -94,8 +91,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
 	  <li class="nav-item">
-	      @php $active = (request()->is('admin')) ? 'active' : '' @endphp
-	      <a href="{{ route('admin') }}" class="nav-link {{ $active }}">
+	      @php $active = (request()->is('index')) ? 'active' : '' @endphp
+	      <a href="{{ route('index') }}" class="nav-link {{ $active }}">
 		<i class="nav-icon fas fa-chart-line"></i>
 		  <p>@lang ('labels.title.dashboard')</p>
 	      </a>
@@ -164,31 +161,6 @@ scratch. This page gets rid of all links and provides the needed markup only.
 	      </li>
 	  @endallowto
 
-	  @allowto ('create-menu')
-	      @php $open = (request()->is('admin/menus*')) ? 'menu-open' : '' @endphp
-	      <li class="nav-item {{ $open }}">
-		  @php $active = (request()->is('admin/menus*')) ? 'active' : '' @endphp
-		  <a href="#" class="nav-link {{ $active }}">
-		    <i class="nav-icon fas fa-bars"></i>
-		    <p>@lang ('labels.title.menus')<i class="right fas fa-angle-left"></i></p>
-		  </a>
-		  <ul class="nav nav-treeview">
-			  @php $active = (request()->is('admin/menus/menus*')) ? true : false @endphp
-			  <x-menu-item href="{{ route('admin.menus.menus.index') }}" :sub=true :active="$active">
-			    @lang ('labels.title.menus')
-			  </x-menu-item>
-
-			  @inject ('menu', 'App\Models\Menus\Menu')
-                          @foreach ($menu::getMenus() as $menu)
-			      @php $active = (request()->is('admin/menus/'.$menu->code.'/menuitems*')) ? true : false @endphp
-			      <x-menu-item href="{{ route('admin.menus.menuitems.index', $menu->code) }}" :sub=true :active="$active">
-				 {{ $menu->title }}
-			      </x-menu-item>
-			  @endforeach
-		  </ul>
-	      </li>
-	  @endallowto
-
 	  @allowtoany (['global-settings', 'blog-settings', 'update-email'])
 	      @php $open = (request()->is('settings*')) ? 'menu-open' : '' @endphp
 	      <li class="nav-item {{ $open }}">
@@ -214,8 +186,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
 	      </li>
 	  @endallowto
 	  <li class="nav-item">
-	      @php $active = (request()->is('admin/files*')) ? 'active' : '' @endphp
-	      <a href="{{ route('admin.files.index') }}" class="nav-link {{ $active }}">
+	      @php $active = (request()->is('files*')) ? 'active' : '' @endphp
+	      <a href="{{ route('files.index') }}" class="nav-link {{ $active }}">
 		<i class="nav-icon fas fa-copy"></i>
 		  <p>@lang ('labels.title.files')</p>
 	      </a>

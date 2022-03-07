@@ -62,16 +62,9 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        // Backend CMS
-        'admin' => \App\Http\Middleware\Admin::class,
-        //'admin.settings.general' => \App\Http\Middleware\AdminSettingsGeneral::class,
-        //'admin.settings.emails' => \App\Http\Middleware\AdminSettingsEmails::class,
-        'admin.blog.posts' => \App\Http\Middleware\AdminBlogPosts::class,
-        'admin.blog.categories' => \App\Http\Middleware\AdminBlogCategories::class,
-        'admin.blog.settings' => \App\Http\Middleware\AdminBlogSettings::class,
-        'admin.menus.menus' => \App\Http\Middleware\AdminMenusMenus::class,
-        'admin.menus.menuitems' => \App\Http\Middleware\AdminMenusMenuItems::class,
-        // /// /// 
+        // CMS
+        //'admin' => \App\Http\Middleware\Admin::class,
+        'index' => \App\Http\Middleware\Index::class,
         'users.users' => \App\Http\Middleware\UsersUsers::class,
         'users.roles' => \App\Http\Middleware\UsersRoles::class,
         'users.groups' => \App\Http\Middleware\UsersGroups::class,
