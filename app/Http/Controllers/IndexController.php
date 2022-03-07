@@ -14,6 +14,8 @@ class IndexController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        // Ensure the registered role type users don't access to the CMS. 
+        $this->middleware('index');
     }
 
     /**

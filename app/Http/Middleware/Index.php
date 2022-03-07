@@ -32,7 +32,7 @@ class Index
             return $next($request);
         }
 
+        // Users with registered role type are not allowed to access the CMS.
         abort(403);
-        //return redirect()->route('profile');
     }
 }
