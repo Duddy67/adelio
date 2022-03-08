@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\Users\Group;
-use App\Traits\Admin\ItemConfig;
-use App\Traits\Admin\CheckInCheckOut;
+use App\Traits\ItemConfig;
+use App\Traits\CheckInCheckOut;
 use App\Http\Requests\Users\Group\StoreRequest;
 use App\Http\Requests\Users\Group\UpdateRequest;
 

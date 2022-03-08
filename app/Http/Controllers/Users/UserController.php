@@ -8,8 +8,8 @@ use Illuminate\Validation\Rule;
 use App\Models\Users\User;
 use App\Models\Users\Group;
 use Illuminate\Support\Facades\Hash;
-use App\Traits\Admin\ItemConfig;
-use App\Traits\Admin\CheckInCheckOut;
+use App\Traits\ItemConfig;
+use App\Traits\CheckInCheckOut;
 use App\Models\Settings\Email;
 use App\Models\Cms\Document;
 use App\Http\Requests\Users\User\StoreRequest;
@@ -80,7 +80,7 @@ class UserController extends Controller
         // Gather the needed data to build the form.
         $fields = $this->getFields(null, ['updated_by']);
         $actions = $this->getActions('form', ['destroy']);
-	$query = $request->query();
+        $query = $request->query();
 
         return view('users.users.form', compact('fields', 'actions', 'query'));
     }
@@ -96,27 +96,27 @@ class UserController extends Controller
     {
         $user = User::select('users.*', 'users2.name as modifier_name')->leftJoin('users as users2', 'users.updated_by', '=', 'users2.id')->findOrFail($id);
 
-	if (!auth()->user()->canUpdate($user) && auth()->user()->id != $user->id) {
-	    return redirect()->route('users.users.index', array_merge($request->query(), ['user' => $id]))->with('error', __('messages.users.edit_user_not_auth'));
-	}
+        if (!auth()->user()->canUpdate($user) && auth()->user()->id != $user->id) {
+            return redirect()->route('users.users.index', array_merge($request->query(), ['user' => $id]))->with('error', __('messages.users.edit_user_not_auth'));
+        }
 
-	if ($user->checked_out && $user->checked_out != auth()->user()->id) {
-	    return redirect()->route('users.users.index', array_merge($request->query(), ['user' => $id]))->with('error',  __('messages.generic.checked_out'));
-	}
+        if ($user->checked_out && $user->checked_out != auth()->user()->id) {
+            return redirect()->route('users.users.index', array_merge($request->query(), ['user' => $id]))->with('error',  __('messages.generic.checked_out'));
+        }
 
-	$user->checkOut();
+        $user->checkOut();
 
         // Gather the needed data to build the form.
-	
-	$except = ($user->updated_by === null) ? ['updated_by', 'updated_at'] : [];
+        
+        $except = ($user->updated_by === null) ? ['updated_by', 'updated_at'] : [];
         $fields = $this->getFields($user, $except);
-	$this->setFieldValues($fields, $user);
-	// Users cannot delete their own account.
-	$except = (auth()->user()->id == $user->id) ? ['destroy'] : [];
+        $this->setFieldValues($fields, $user);
+        // Users cannot delete their own account.
+        $except = (auth()->user()->id == $user->id) ? ['destroy'] : [];
         $actions = $this->getActions('form', $except);
-	// Add the id parameter to the query.
-	$query = array_merge($request->query(), ['user' => $id]);
-	$photo = $user->documents()->where('field', 'photo')->latest('created_at')->first();
+        // Add the id parameter to the query.
+        $query = array_merge($request->query(), ['user' => $id]);
+        $photo = $user->documents()->where('field', 'photo')->latest('created_at')->first();
 
         return view('users.users.form', compact('user', 'fields', 'actions', 'query', 'photo'));
     }
@@ -131,10 +131,10 @@ class UserController extends Controller
     public function cancel(Request $request, User $user = null)
     {
         if ($user) {
-	    $user->checkIn();
-	}
+            $user->checkIn();
+        }
 
-	return redirect()->route('users.users.index', $request->query());
+        return redirect()->route('users.users.index', $request->query());
     }
 
     /**
@@ -146,45 +146,45 @@ class UserController extends Controller
      */
     public function update(UpdateRequest $request, User $user)
     {
-	if (!auth()->user()->canUpdate($user) && auth()->user()->id != $user->id) {
-	    return redirect()->route('users.users.edit', $user->id)->with('error',  __('messages.users.update_user_not_auth'));
-	}
+        if (!auth()->user()->canUpdate($user) && auth()->user()->id != $user->id) {
+            return redirect()->route('users.users.edit', $user->id)->with('error',  __('messages.users.update_user_not_auth'));
+        }
 
-	$user->name = $request->input('name');
-	$user->email = $request->input('email');
-	$user->updated_by = auth()->user()->id;
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');
+        $user->updated_by = auth()->user()->id;
 
-	if ($request->input('password') !== null) {
-	    $user->password = Hash::make($request->input('password'));
-	}
+        if ($request->input('password') !== null) {
+            $user->password = Hash::make($request->input('password'));
+        }
 
-	// Users cannot modify their own role and they cannot select or deselect a private role.
-	if (auth()->user()->id != $user->id && !$user->isRolePrivate()) {
-	    $user->syncRoles($request->input('role'));
-	}
+        // Users cannot modify their own role and they cannot select or deselect a private role.
+        if (auth()->user()->id != $user->id && !$user->isRolePrivate()) {
+            $user->syncRoles($request->input('role'));
+        }
 
-	$groups = array_merge($request->input('groups', []), Group::getPrivateGroups($user));
+        $groups = array_merge($request->input('groups', []), Group::getPrivateGroups($user));
 
-	if (!empty($groups)) {
-	    $user->groups()->sync($groups);
-	}
-	else {
-	    // Remove all groups for this user.
-	    $user->groups()->sync([]);
-	}
+        if (!empty($groups)) {
+            $user->groups()->sync($groups);
+        }
+        else {
+            // Remove all groups for this user.
+            $user->groups()->sync([]);
+        }
 
-	$user->save();
+        $user->save();
 
-	if ($document = $this->uploadPhoto($request)) {
-	    $user->documents()->save($document);
-	}
+        if ($document = $this->uploadPhoto($request)) {
+            $user->documents()->save($document);
+        }
 
         if ($request->input('_close', null)) {
-	    $user->checkIn();
-	    return redirect()->route('users.users.index', $request->query())->with('success', __('messages.users.update_success'));
-	}
+            $user->checkIn();
+            return redirect()->route('users.users.index', $request->query())->with('success', __('messages.users.update_success'));
+        }
 
-	return redirect()->route('users.users.edit', array_merge($request->query(), ['user' => $user->id]))->with('success', __('messages.users.update_success'));
+        return redirect()->route('users.users.edit', array_merge($request->query(), ['user' => $user->id]))->with('success', __('messages.users.update_success'));
     }
 
     /**
@@ -195,29 +195,29 @@ class UserController extends Controller
      */
     public function store(StoreRequest $request)
     {
-	$user = User::create([
-	    'name' => $request->input('name'),
-	    'email' => $request->input('email'),
-	    'password' => Hash::make($request->input('password')),
-	]);
+        $user = User::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+        ]);
 
-	$user->assignRole($request->input('role'));
+        $user->assignRole($request->input('role'));
 
-	if ($request->input('groups') !== null) {
-	    $user->groups()->attach($request->input('groups'));
-	}
+        if ($request->input('groups') !== null) {
+            $user->groups()->attach($request->input('groups'));
+        }
 
-	Email::sendEmail('user_registration', $user);
+        Email::sendEmail('user_registration', $user);
 
-	if ($document = $this->uploadPhoto($request)) {
-	    $user->documents()->save($document);
-	}
+        if ($document = $this->uploadPhoto($request)) {
+            $user->documents()->save($document);
+        }
 
         if ($request->input('_close', null)) {
-	    return redirect()->route('users.users.index', $request->query())->with('success', __('messages.users.create_success'));
-	}
+            return redirect()->route('users.users.index', $request->query())->with('success', __('messages.users.create_success'));
+        }
 
-	return redirect()->route('users.users.edit', array_merge($request->query(), ['user' => $user->id]))->with('success', __('messages.users.create_success'));
+        return redirect()->route('users.users.edit', array_merge($request->query(), ['user' => $user->id]))->with('success', __('messages.users.create_success'));
     }
 
     /**
@@ -229,21 +229,21 @@ class UserController extends Controller
      */
     public function destroy(Request $request, User $user)
     {
-	if (!auth()->user()->canDelete($user)) {
-	    return redirect()->route('users.users.edit', array_merge($request->query(), ['user' => $user->id]))->with('error', __('messages.users.delete_user_not_auth'));
-	}
+        if (!auth()->user()->canDelete($user)) {
+            return redirect()->route('users.users.edit', array_merge($request->query(), ['user' => $user->id]))->with('error', __('messages.users.delete_user_not_auth'));
+        }
 
-	if ($dependencies = $user->hasDependencies()) {
-	    return redirect()->route('users.users.edit', array_merge($request->query(), ['user' => $user->id]))
-			     ->with('error', __('messages.users.alert_user_dependencies', ['name' => $user->name, 'number' => $dependencies['nbItems'],
-				    'dependencies' => __('labels.title.'.$dependencies['name'])]));
-	}
+        if ($dependencies = $user->hasDependencies()) {
+            return redirect()->route('users.users.edit', array_merge($request->query(), ['user' => $user->id]))
+                    ->with('error', __('messages.users.alert_user_dependencies', ['name' => $user->name, 'number' => $dependencies['nbItems'],
+                        'dependencies' => __('labels.title.'.$dependencies['name'])]));
+        }
 
-	$name = $user->name;
+        $name = $user->name;
 
-	$user->delete();
+        $user->delete();
 
-	return redirect()->route('users.users.index', $request->query())->with('success', __('messages.users.delete_success', ['name' => $name]));
+        return redirect()->route('users.users.index', $request->query())->with('success', __('messages.users.delete_success', ['name' => $name]));
     }
 
     /**
@@ -255,37 +255,37 @@ class UserController extends Controller
     public function massDestroy(Request $request)
     {
         if ($request->input('ids') !== null) {
-	    // Counter.
-	    $deleted = 0;
+            // Counter.
+            $deleted = 0;
 
-	    // Remove the users selected from the list.
-	    foreach ($request->input('ids') as $key => $id) {
-		$user = User::findOrFail($id);
-		// Prepare the message about the users already deleted in case the function has to return an error.
-		$messages = ($deleted) ? ['success' => __('messages.users.delete_list_success', ['number' => $deleted])] : [];
+            // Remove the users selected from the list.
+            foreach ($request->input('ids') as $key => $id) {
+                $user = User::findOrFail($id);
+                // Prepare the message about the users already deleted in case the function has to return an error.
+                $messages = ($deleted) ? ['success' => __('messages.users.delete_list_success', ['number' => $deleted])] : [];
 
-		if (!auth()->user()->canDelete($user)) {
-		    $messages['error'] = __('messages.users.delete_list_not_auth', ['name' => $user->name]);
+                if (!auth()->user()->canDelete($user)) {
+                    $messages['error'] = __('messages.users.delete_list_not_auth', ['name' => $user->name]);
 
-		    return redirect()->route('users.user.index', $request->query())->with($messages);
-		}
+                    return redirect()->route('users.user.index', $request->query())->with($messages);
+                }
 
-		if ($dependencies = $user->hasDependencies()) {
-		    $messages['error'] = __('messages.users.alert_user_dependencies', ['name' => $user->name, 'number' => $dependencies['nbItems'],
-										       'dependencies' => __('labels.title.'.$dependencies['name'])]);
+                if ($dependencies = $user->hasDependencies()) {
+                    $messages['error'] = __('messages.users.alert_user_dependencies', ['name' => $user->name, 'number' => $dependencies['nbItems'],
+                                                    'dependencies' => __('labels.title.'.$dependencies['name'])]);
 
-		    return redirect()->route('users.users.index', $request->query())->with($messages);
-		}
+                    return redirect()->route('users.users.index', $request->query())->with($messages);
+                }
 
-		$user->delete();
+                $user->delete();
 
-		$deleted++;
-	    }
+                $deleted++;
+            }
 
-	    return redirect()->route('users.users.index', $request->query())->with('success', __('messages.users.delete_list_success', ['number' => count($request->input('ids'))]));
-	}
+            return redirect()->route('users.users.index', $request->query())->with('success', __('messages.users.delete_list_success', ['number' => count($request->input('ids'))]));
+        }
 
-	return redirect()->route('users.users.index', $request->query())->with('error', __('messages.generic.no_item_selected'));
+        return redirect()->route('users.users.index', $request->query())->with('error', __('messages.generic.no_item_selected'));
     }
 
     /**
@@ -298,7 +298,7 @@ class UserController extends Controller
     {
         $messages = CheckInCheckOut::checkInMultiple($request->input('ids'), '\\App\\Models\\Users\\User');
 
-	return redirect()->route('users.users.index', $request->query())->with($messages);
+        return redirect()->route('users.users.index', $request->query())->with($messages);
     }
 
     /**
@@ -311,8 +311,8 @@ class UserController extends Controller
     {
         $fields = $this->getSpecificFields(['role', 'groups']);
         $actions = $this->getActions('batch');
-	$query = $request->query();
-	$route = 'users.users';
+        $query = $request->query();
+        $route = 'users.users';
 
         return view('share.batch', compact('fields', 'actions', 'query', 'route'));
     }
@@ -326,48 +326,48 @@ class UserController extends Controller
     public function massUpdate(Request $request)
     {
         $updates = 0;
-	$messages = [];
+        $messages = [];
 
         foreach ($request->input('ids') as $key => $id) {
-	    $user = User::findOrFail($id);
+            $user = User::findOrFail($id);
 
-	    // Check for authorisation.
-	    if (!auth()->user()->canUpdate($user) && auth()->user()->id != $user->id) {
-		$messages['error'] = __('messages.generic.mass_update_not_auth');
-		continue;
-	    }
+            // Check for authorisation.
+            if (!auth()->user()->canUpdate($user) && auth()->user()->id != $user->id) {
+                $messages['error'] = __('messages.generic.mass_update_not_auth');
+                continue;
+            }
 
-	    if ($request->input('groups') !== null) {
-		if ($request->input('_selected_groups') == 'add') {
-		    $user->groups()->syncWithoutDetaching($request->input('groups'));
-		}
-		else {
-		    // Remove the selected groups from the current groups and get the remaining groups.
-		    $groups = array_diff($user->getGroupIds(), $request->input('groups'));
-		    $user->groups()->sync($groups);
-		}
-	    }
+            if ($request->input('groups') !== null) {
+                if ($request->input('_selected_groups') == 'add') {
+                    $user->groups()->syncWithoutDetaching($request->input('groups'));
+                }
+                else {
+                    // Remove the selected groups from the current groups and get the remaining groups.
+                    $groups = array_diff($user->getGroupIds(), $request->input('groups'));
+                    $user->groups()->sync($groups);
+                }
+            }
 
-	    if (!empty($request->input('role'))) {
+            if (!empty($request->input('role'))) {
 
-		if (auth()->user()->id != $user->id) {
-		    $user->syncRoles($request->input('role'));
-		}
-		// Users cannot modify the role attribute of their own account.
-		else {
-		    $messages['error'] = __('messages.generic.mass_update_not_auth');
-		    continue;
-		}
-	    }
+                if (auth()->user()->id != $user->id) {
+                    $user->syncRoles($request->input('role'));
+                }
+                // Users cannot modify the role attribute of their own account.
+                else {
+                    $messages['error'] = __('messages.generic.mass_update_not_auth');
+                    continue;
+                }
+            }
 
-	    $updates++;
-	}
+            $updates++;
+        }
 
-	if ($updates) {
-	    $messages['success'] = __('messages.generic.mass_update_success', ['number' => $updates]);
-	}
+        if ($updates) {
+            $messages['success'] = __('messages.generic.mass_update_success', ['number' => $updates]);
+        }
 
-	return redirect()->route('users.users.index')->with($messages);
+        return redirect()->route('users.users.index')->with($messages);
     }
 
     /*
@@ -379,13 +379,13 @@ class UserController extends Controller
     private function uploadPhoto($request)
     {
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
-	    $document = new Document;
-	    $document->upload($request->file('photo'), 'user', 'photo');
+            $document = new Document;
+            $document->upload($request->file('photo'), 'user', 'photo');
 
-	    return $document;
-	}
+            return $document;
+        }
 
-	return null;
+        return null;
     }
 
     /*
@@ -399,33 +399,33 @@ class UserController extends Controller
     private function setRowValues(&$rows, $columns, $users)
     {
         foreach ($users as $key => $user) {
-	    foreach ($columns as $column) {
-	        if ($column->name == 'role') {
-		    $roles = $user->getRoleNames();
-		    $rows[$key]->role = $roles[0];
-		}
+            foreach ($columns as $column) {
+                if ($column->name == 'role') {
+                    $roles = $user->getRoleNames();
+                    $rows[$key]->role = $roles[0];
+                }
 
-	        if ($column->name == 'groups') {
-		    $groups = [];
+                if ($column->name == 'groups') {
+                    $groups = [];
 
-	            $user->groups()->each(function ($group, $key) use(&$groups, $user) {
-		        // Check for private groups.
+                    $user->groups()->each(function ($group, $key) use(&$groups, $user) {
+                        // Check for private groups.
                         if ($group->access_level == 'private' && $group->owned_by != auth()->user()->id && auth()->user()->getRoleLevel() <= $group->getOwnerRoleLevel()) {
-			    // Don't show this private group if the item user is not part of it.
-			    if (!in_array($group->id, $user->getGroupIds())) {
-				// N.B: same as 'continue' with each().
-				return; 
-			    }
-			} 
+                            // Don't show this private group if the item user is not part of it.
+                            if (!in_array($group->id, $user->getGroupIds())) {
+                                // N.B: same as 'continue' with each().
+                                return; 
+                            }
+                        } 
 
-			$groups[] = $group->name;
-		    });
+                        $groups[] = $group->name;
+                    });
 
-		    $groups = (!empty($groups)) ? implode(', ', $groups) : '-';
-		    $rows[$key]->groups = $groups;
-		}
-	    }
-	}
+                    $groups = (!empty($groups)) ? implode(', ', $groups) : '-';
+                    $rows[$key]->groups = $groups;
+                }
+            }
+        }
     }
 
     /*
@@ -438,11 +438,11 @@ class UserController extends Controller
     private function setFieldValues(&$fields, $user)
     {
         foreach ($fields as $field) {
-	    // The current user is editing their own account.
-	    if ($field->name == 'role' && $user->id == auth()->user()->id) {
-                // Add the current user's role to the select list.
-	        $field->options[] = ['value' => $user->getRoleName(), 'text' => $user->getRoleName()];
-	    }
-	}
+            // The current user is editing their own account.
+            if ($field->name == 'role' && $user->id == auth()->user()->id) {
+                    // Add the current user's role to the select list.
+                $field->options[] = ['value' => $user->getRoleName(), 'text' => $user->getRoleName()];
+            }
+        }
     }
 }

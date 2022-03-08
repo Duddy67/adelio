@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\Settings\Email;
 use App\Models\Users\User;
-use App\Traits\Admin\ItemConfig;
-use App\Traits\Admin\CheckInCheckOut;
+use App\Traits\ItemConfig;
+use App\Traits\CheckInCheckOut;
 use App\Http\Requests\Settings\Email\StoreRequest;
 use App\Http\Requests\Settings\Email\UpdateRequest;
 
@@ -101,7 +101,7 @@ class EmailController extends Controller
 
         $email->checkOut();
 
-            // Gather the needed data to build the form.
+        // Gather the needed data to build the form.
         
         $except = ($email->updated_by === null) ? ['updated_by', 'updated_at'] : [];
 

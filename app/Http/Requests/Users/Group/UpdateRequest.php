@@ -4,7 +4,7 @@ namespace App\Http\Requests\Users\Group;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Traits\Admin\AccessLevel;
+use App\Traits\AccessLevel;
 
 
 class UpdateRequest extends FormRequest
@@ -29,19 +29,19 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         $rules = [
-	    'name' => [
-		'required',
-		'regex:/^[a-z0-9-]{3,}$/',
-		Rule::unique('groups')->ignore($this->group->id)
-	    ],
+            'name' => [
+                'required',
+                'regex:/^[a-z0-9-]{3,}$/',
+                Rule::unique('groups')->ignore($this->group->id)
+            ],
         ];
 
-	if (auth()->user()->getRoleLevel() > $this->group->getOwnerRoleLevel() || $this->group->owned_by == auth()->user()->id) {
-	    $rules['access_level'] = 'required';
-	    $rules['permission'] = 'required';
-	    $rules['owned_by'] = 'required';
-	}
+        if (auth()->user()->getRoleLevel() > $this->group->getOwnerRoleLevel() || $this->group->owned_by == auth()->user()->id) {
+            $rules['access_level'] = 'required';
+            $rules['permission'] = 'required';
+            $rules['owned_by'] = 'required';
+        }
 
-	return $rules;
+        return $rules;
     }
 }

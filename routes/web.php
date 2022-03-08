@@ -79,7 +79,6 @@ Route::middleware(['index'])->group(function () {
             Route::put('/users/checkin', 'massCheckIn')->name('users.users.massCheckIn');
             Route::get('/users', 'index')->name('users.users');
             Route::resource('users', UserController::class, ['as' => 'users'])->except(['show']);
-
         });
 
         // Roles
@@ -161,18 +160,3 @@ Route::middleware(['index'])->group(function () {
         Route::put('/batch', [FileController::class, 'massUpdate'])->name('files.massUpdate');
     });
 });
-
-/*Route::prefix('admin')->group(function () {
-
-    Route::middleware(['admin'])->group(function () {
-        //Route::get('/', [AdminController::class, 'index'])->name('admin');
-
-        // Files
-        //Route::get('/files', [FileController::class, 'index'])->name('admin.files.index');
-        //Route::delete('/files', [FileController::class, 'massDestroy'])->name('admin.files.massDestroy');
-        //Route::get('/files/batch', [FileController::class, 'batch'])->name('admin.files.batch');
-        //Route::put('/files/batch', [FileController::class, 'massUpdate'])->name('admin.files.massUpdate');
-
-    });
-});*/
-

@@ -26,18 +26,18 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         $rules = [
-	    'name' => 'bail|required|between:5,25|regex:/^[\pL\s\-]+$/u',
-	    'email' => ['bail', 'required', 'email',
-			Rule::unique('users')->ignore($this->user->id)
-	    ],
-	    'password' => 'nullable|confirmed|min:8',
-	    'photo' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=1000,max_height=1000'],
+                'name' => 'bail|required|between:5,25|regex:/^[\pL\s\-]+$/u',
+                'email' => ['bail', 'required', 'email',
+                Rule::unique('users')->ignore($this->user->id)
+            ],
+            'password' => 'nullable|confirmed|min:8',
+            'photo' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=1000,max_height=1000'],
         ];
 
-	if (auth()->user()->id != $this->user->id && !$this->user->isRolePrivate()) {
-	    $rules['role'] = 'required';
-	}
+        if (auth()->user()->id != $this->user->id && !$this->user->isRolePrivate()) {
+            $rules['role'] = 'required';
+        }
 
-	return $rules;
+        return $rules;
     }
 }

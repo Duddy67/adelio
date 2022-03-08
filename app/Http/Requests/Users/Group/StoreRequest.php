@@ -25,14 +25,14 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-	    'name' => [
-		'required',
-		'regex:/^[a-z0-9-]{3,}$/',
-		'unique:groups'
-	    ],
-	    'access_level' => 'required',
-	    'permission' => 'required',
-	    'owned_by' => 'required'
+            'name' => [
+            'required',
+            'regex:/^[a-z0-9-]{3,}$/',
+            'unique:groups'
+            ],
+            'access_level' => 'required',
+            'permission' => 'required',
+            'owned_by' => 'required'
         ];
     }
 }

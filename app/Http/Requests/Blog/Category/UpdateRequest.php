@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Blog\Category;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Traits\Admin\AccessLevel;
+use App\Traits\AccessLevel;
 
 
 class UpdateRequest extends FormRequest
@@ -28,22 +28,22 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         $rules = [
-	    'name' => [
-		'required',
-	    ],
+            'name' => [
+            'required',
+            ],
         ];
 
-	// It's a parent private category.
-	if ($this->category->access_level == 'private' && !$this->category->isParentPrivate() && $this->category->canChangeAccessLevel()) {
-	    // Only access level is settable.
-	    $rules['access_level'] = 'required';
-	}
+        // It's a parent private category.
+        if ($this->category->access_level == 'private' && !$this->category->isParentPrivate() && $this->category->canChangeAccessLevel()) {
+            // Only access level is settable.
+            $rules['access_level'] = 'required';
+        }
 
-	if ($this->category->access_level != 'private' && $this->category->canChangeAccessLevel()) {
-	    $rules['access_level'] = 'required';
-	    $rules['owned_by'] = 'required';
-	}
+        if ($this->category->access_level != 'private' && $this->category->canChangeAccessLevel()) {
+            $rules['access_level'] = 'required';
+            $rules['owned_by'] = 'required';
+        }
 
-	return $rules;
+        return $rules;
     }
 }

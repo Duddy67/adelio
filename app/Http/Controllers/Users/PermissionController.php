@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Users;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Traits\Admin\ItemConfig;
+use App\Traits\ItemConfig;
 use App\Models\Users\Permission;
 
 

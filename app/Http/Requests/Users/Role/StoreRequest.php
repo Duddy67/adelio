@@ -26,14 +26,14 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-	    'name' => [
-		'required',
-		'not_regex:/^('.implode('|', Role::getDefaultRoles()).')$/i',
-		'regex:/^[a-z0-9-]{3,}$/',
-		'unique:roles'
-	    ],
-	    'access_level' => 'required',
-	    'owned_by' => 'required',
+            'name' => [
+                'required',
+                'not_regex:/^('.implode('|', Role::getDefaultRoles()).')$/i',
+                'regex:/^[a-z0-9-]{3,}$/',
+                'unique:roles'
+            ],
+            'access_level' => 'required',
+            'owned_by' => 'required',
         ];
     }
 }

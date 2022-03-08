@@ -11,7 +11,7 @@ use App\Models\Users\Role;
 use App\Models\Users\Group;
 use App\Models\Cms\Document;
 use App\Models\Settings\General;
-use App\Traits\Admin\CheckInCheckOut;
+use App\Traits\CheckInCheckOut;
 
 
 class User extends Authenticatable
@@ -105,10 +105,10 @@ class User extends Authenticatable
      */
     public function delete()
     {
-	foreach ($this->documents as $document) {
-	    // Ensure the linked file is removed from the server, (see the Document delete() function).
-	    $document->delete();
-	}
+        foreach ($this->documents as $document) {
+            // Ensure the linked file is removed from the server, (see the Document delete() function).
+            $document->delete();
+        }
 
         $this->groups()->detach();
 
@@ -129,26 +129,26 @@ class User extends Authenticatable
         $groups = $request->input('groups', []);
         $search = $request->input('search', null);
 
-	$query = User::whereHas('roles', function($query) use($roles) {
-	    if (!empty($roles)) {
-	        $query->whereIn('name', $roles);
-	    }
-	});
+        $query = User::whereHas('roles', function($query) use($roles) {
+            if (!empty($roles)) {
+                $query->whereIn('name', $roles);
+            }
+        });
 
-	if (!empty($groups)) {
-	    $query->whereHas('groups', function($query) use($groups) {
-		$query->whereIn('id', $groups);
-	    });
-	}
+        if (!empty($groups)) {
+            $query->whereHas('groups', function($query) use($groups) {
+                $query->whereIn('id', $groups);
+            });
+        }
 
-	if ($search !== null) {
-	    $query->where('name', 'like', '%'.$search.'%');
-	}
+        if ($search !== null) {
+            $query->where('name', 'like', '%'.$search.'%');
+        }
 
-	if ($sortedBy !== null) {
-	    preg_match('#^([a-z0-9_]+)_(asc|desc)$#', $sortedBy, $matches);
-	    $query->orderBy($matches[1], $matches[2]);
-	}
+        if ($sortedBy !== null) {
+            preg_match('#^([a-z0-9_]+)_(asc|desc)$#', $sortedBy, $matches);
+            $query->orderBy($matches[1], $matches[2]);
+        }
 
         return $query->paginate($perPage);
     }
@@ -161,29 +161,29 @@ class User extends Authenticatable
      */
     public function getRoleOptions($user = null)
     {
-	// Check first if the current user is editing their own user account.
-	if ($user && auth()->user()->id == $user->id) {
-	    // Only display the user's role as users cannot change their own role.
-	    $roles = Role::where('name', $user->getRoleNames()->toArray()[0])->get();
-	}
-	else {
-	    $roles = auth()->user()->getAssignableRoles();
-	}
+        // Check first if the current user is editing their own user account.
+        if ($user && auth()->user()->id == $user->id) {
+            // Only display the user's role as users cannot change their own role.
+            $roles = Role::where('name', $user->getRoleNames()->toArray()[0])->get();
+        }
+        else {
+            $roles = auth()->user()->getAssignableRoles();
+        }
 
-	$options = [];
+        $options = [];
 
-	foreach ($roles as $role) {
-	    $extra = [];
-	    $owner = ($role->owned_by == auth()->user()->id) ? auth()->user() : User::findOrFail($role->owned_by);
+        foreach ($roles as $role) {
+            $extra = [];
+            $owner = ($role->owned_by == auth()->user()->id) ? auth()->user() : User::findOrFail($role->owned_by);
 
-	    if ($role->access_level == 'private' && $owner->getRoleLevel() >= auth()->user()->getRoleLevel() && $role->owned_by != auth()->user()->id) {
-	        $extra = ['disabled'];
-	    }
+            if ($role->access_level == 'private' && $owner->getRoleLevel() >= auth()->user()->getRoleLevel() && $role->owned_by != auth()->user()->id) {
+                $extra = ['disabled'];
+            }
 
-	    $options[] = ['value' => $role->name, 'text' => $role->name, 'extra' => $extra];
-	}
+            $options[] = ['value' => $role->name, 'text' => $role->name, 'extra' => $extra];
+        }
 
-	return $options;
+        return $options;
     }
 
     /*
@@ -195,11 +195,11 @@ class User extends Authenticatable
     {
         $roles = Role::all()->pluck('name')->toArray();
 
-	foreach ($roles as $role) {
-	    $options[] = ['value' => $role, 'text' => $role];
-	}
+        foreach ($roles as $role) {
+            $options[] = ['value' => $role, 'text' => $role];
+        }
 
-	return $options;
+        return $options;
     }
 
     /*
@@ -208,14 +208,14 @@ class User extends Authenticatable
     public function getSelectedValue($fieldName)
     {
         if ($fieldName == 'role') {
-	    return $this->getRoleName();
-	}
+            return $this->getRoleName();
+        }
 
         if ($fieldName == 'groups') {
-	    return $this->groups->pluck('id')->toArray();
-	}
+            return $this->groups->pluck('id')->toArray();
+        }
 
-	return null;
+        return null;
     }
 
     /*
@@ -227,9 +227,9 @@ class User extends Authenticatable
     public function isRolePrivate()
     {
         $role = $this->roles[0];
-	$owner = ($role->owned_by == auth()->user()->id) ? auth()->user() : User::findOrFail($role->owned_by);
+        $owner = ($role->owned_by == auth()->user()->id) ? auth()->user() : User::findOrFail($role->owned_by);
 
-	return ($role->access_level == 'private' && $owner->getRoleLevel() >= auth()->user()->getRoleLevel() && $role->owned_by != auth()->user()->id) ? true : false;
+        return ($role->access_level == 'private' && $owner->getRoleLevel() >= auth()->user()->getRoleLevel() && $role->owned_by != auth()->user()->id) ? true : false;
     }
 
     /*
@@ -241,12 +241,12 @@ class User extends Authenticatable
     {
         $document = Document::where(['item_type' => 'user', 'field' => 'photo', 'owned_by' => $this->id])->orderBy('created_at', 'desc')->first();
 
-	if ($document) {
-	    return $document->getThumbnailUrl();
-	}
+        if ($document) {
+            return $document->getThumbnailUrl();
+        }
 
-	// Returns a default user image.
-	return '/images/user.png';
+        // Returns a default user image.
+        return '/images/user.png';
     }
 
     /*
@@ -258,17 +258,17 @@ class User extends Authenticatable
     public function canUpdate($user)
     {
         if (is_int($user)) {
-	    $user = User::findOrFail($user);
-	}
+            $user = User::findOrFail($user);
+        }
 
-	$hierarchy = Role::getRoleHierarchy();
+        $hierarchy = Role::getRoleHierarchy();
 
-        // Users can only update users lower in the hierarchy.
-	if ($hierarchy[$this->getRoleType()] > $hierarchy[$user->getRoleType()]) {
-	    return true;
-	}
+            // Users can only update users lower in the hierarchy.
+        if ($hierarchy[$this->getRoleType()] > $hierarchy[$user->getRoleType()]) {
+            return true;
+        }
 
-	return false;
+        return false;
     }
 
     /*
@@ -280,22 +280,22 @@ class User extends Authenticatable
     public function canDelete($user)
     {
         if (is_int($user)) {
-	    $user = User::findOrFail($user);
-	}
+            $user = User::findOrFail($user);
+        }
 
-	// Users cannot delete their own account.
+        // Users cannot delete their own account.
         if ($this->id == $user->id) {
-	    return false;
-	}
+            return false;
+        }
 
-	$hierarchy = Role::getRoleHierarchy();
+        $hierarchy = Role::getRoleHierarchy();
 
-        // Users can only delete users lower in the hierarchy.
-	if ($hierarchy[$this->getRoleType()] > $hierarchy[$user->getRoleType()]) {
-	    return true;
-	}
+            // Users can only delete users lower in the hierarchy.
+        if ($hierarchy[$this->getRoleType()] > $hierarchy[$user->getRoleType()]) {
+            return true;
+        }
 
-	return false;
+        return false;
     }
 
     /*
@@ -315,9 +315,9 @@ class User extends Authenticatable
      */
     public function getRoleLevel()
     {
-	$role = Role::where('name', $this->getRoleName())->first();
+        $role = Role::where('name', $this->getRoleName())->first();
 
-	return Role::getRoleHierarchy()[$role->role_type];
+        return Role::getRoleHierarchy()[$role->role_type];
     }
 
     /*
@@ -327,9 +327,9 @@ class User extends Authenticatable
      */
     public function getRoleType()
     {
-	$role = Role::where('name', $this->getRoleName())->first();
+        $role = Role::where('name', $this->getRoleName())->first();
 
-	return $role->role_type;
+        return $role->role_type;
     }
 
     /*
@@ -341,27 +341,27 @@ class User extends Authenticatable
     public function getAssignableUsers($exceptRoleTypes = [])
     {
         $roleType = $this->getRoleType();
-	$roleTypes = [];
+        $roleTypes = [];
 
-	if ($roleType == 'assistant') {
-	    $roleTypes = ['registered'];
-	}
-	elseif ($roleType == 'manager') {
-	    $roleTypes = ['assistant', 'registered'];
-	}
-	elseif ($roleType == 'admin') {
-	    $roleTypes = ['manager', 'assistant', 'registered'];
-	}
-	elseif ($roleType == 'super-admin') {
-	    $roleTypes = ['admin', 'manager', 'assistant', 'registered'];
-	}
+        if ($roleType == 'assistant') {
+            $roleTypes = ['registered'];
+        }
+        elseif ($roleType == 'manager') {
+            $roleTypes = ['assistant', 'registered'];
+        }
+        elseif ($roleType == 'admin') {
+            $roleTypes = ['manager', 'assistant', 'registered'];
+        }
+        elseif ($roleType == 'super-admin') {
+            $roleTypes = ['admin', 'manager', 'assistant', 'registered'];
+        }
 
-	// Remove possible role types from the list.
-	$roleTypes = array_diff($roleTypes, $exceptRoleTypes);
+        // Remove possible role types from the list.
+        $roleTypes = array_diff($roleTypes, $exceptRoleTypes);
 
-	return User::whereHas('roles', function ($query) use($roleTypes) {
-	    $query->whereIn('role_type', $roleTypes);
-	})->orWhere('id', $this->id)->get(); // Get the user himself as well.
+        return User::whereHas('roles', function ($query) use($roleTypes) {
+                        $query->whereIn('role_type', $roleTypes);
+                    })->orWhere('id', $this->id)->get(); // Get the user himself as well.
     }
 
     /*
@@ -371,26 +371,26 @@ class User extends Authenticatable
      */
     private function getAssignableRoles()
     {
-	// Get the current user's role type.
+        // Get the current user's role type.
         $roleType = $this->getRoleType();
 
-	// Proceed only with role types able to create users and groups 
-	if (!in_array($roleType, ['super-admin', 'admin', 'manager'])) {
-	    // Returns an empty collection.
-	    return new \Illuminate\Database\Eloquent\Collection();
-	}
+        // Proceed only with role types able to create users and groups 
+        if (!in_array($roleType, ['super-admin', 'admin', 'manager'])) {
+            // Returns an empty collection.
+            return new \Illuminate\Database\Eloquent\Collection();
+        }
 
-	if ($roleType == 'manager') {
-	    $roles = Role::whereIn('role_type', ['registered', 'assistant'])->get();
-	}
-	elseif ($roleType == 'admin') {
-	    $roles = Role::whereIn('role_type', ['manager', 'registered', 'assistant'])->get();
-	}
-	elseif ($roleType == 'super-admin') {
-	    $roles = Role::whereIn('role_type', ['admin', 'manager', 'registered', 'assistant'])->get();
-	}
+        if ($roleType == 'manager') {
+            $roles = Role::whereIn('role_type', ['registered', 'assistant'])->get();
+        }
+        elseif ($roleType == 'admin') {
+            $roles = Role::whereIn('role_type', ['manager', 'registered', 'assistant'])->get();
+        }
+        elseif ($roleType == 'super-admin') {
+            $roles = Role::whereIn('role_type', ['admin', 'manager', 'registered', 'assistant'])->get();
+        }
 
-	return $roles;
+        return $roles;
     }
 
     /*
@@ -401,32 +401,32 @@ class User extends Authenticatable
     public function hasDependencies()
     {
         $dependencies = [
-	    'posts' => '\\App\\Models\\Blog\\Post',
-	    'categories' => '\\App\\Models\\Blog\\Category',
-	    'roles' => '\\App\\Models\\Users\\Role',
-	    'groups' => '\\App\\Models\\Users\\Group',
-	    'menus' => '\\App\\Models\\Menus\\Menu',
-	    'menuitems' => '\\App\\Models\\Menus\\MenuItem',
-	    'documents' => '\\App\\Models\\Cms\\Document',
-	];
+            'posts' => '\\App\\Models\\Blog\\Post',
+            'categories' => '\\App\\Models\\Blog\\Category',
+            'roles' => '\\App\\Models\\Users\\Role',
+            'groups' => '\\App\\Models\\Users\\Group',
+            'menus' => '\\App\\Models\\Menus\\Menu',
+            'menuitems' => '\\App\\Models\\Menus\\MenuItem',
+            'documents' => '\\App\\Models\\Cms\\Document',
+        ];
 
-	foreach ($dependencies as $name => $model) {
-	    if ($name == 'documents') {
+        foreach ($dependencies as $name => $model) {
+            if ($name == 'documents') {
                 // Search for the documents uploaded by this user from the file manager.
-	        if ($nbItems = $model::where(['owned_by' => $this->id, 'item_type' => 'user', 'field' => 'file_manager'])->count()) {
-		    return ['name' => 'files', 'nbItems' => $nbItems];
-		}
-		else {
-		    continue;
-		}
-	    }
+                if ($nbItems = $model::where(['owned_by' => $this->id, 'item_type' => 'user', 'field' => 'file_manager'])->count()) {
+                    return ['name' => 'files', 'nbItems' => $nbItems];
+                }
+                else {
+                    continue;
+                }
+            }
 
-	    if ($nbItems = $model::where('owned_by', $this->id)->count()) {
-	        return ['name' => $name, 'nbItems' => $nbItems];
-	    }
-	}
+            if ($nbItems = $model::where('owned_by', $this->id)->count()) {
+                return ['name' => $name, 'nbItems' => $nbItems];
+            }
+        }
 
-	return null;
+        return null;
     }
 
     /*
@@ -447,7 +447,7 @@ class User extends Authenticatable
      */
     public function isAllowedTo($permission)
     {
-	return $this->hasRole('super-admin') || $this->hasPermissionTo($permission);
+        return $this->hasRole('super-admin') || $this->hasPermissionTo($permission);
     }
 
     /*
@@ -458,7 +458,7 @@ class User extends Authenticatable
      */
     public function isAllowedToAny($permission)
     {
-	return $this->hasRole('super-admin') || $this->hasAnyPermission($permission);
+        return $this->hasRole('super-admin') || $this->hasAnyPermission($permission);
     }
 
     /*
@@ -469,7 +469,7 @@ class User extends Authenticatable
      */
     public function isAllowedToAll($permissions)
     {
-	return $this->hasRole('super-admin') || $this->hasAllPermissions($permissions);
+        return $this->hasRole('super-admin') || $this->hasAllPermissions($permissions);
     }
 
     /*

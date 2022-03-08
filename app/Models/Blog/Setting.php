@@ -38,62 +38,62 @@ class Setting extends Model
     public static function getData()
     {
         $results = Setting::all()->toArray();
-	$data = [];
+        $data = [];
 
-	foreach ($results as $param) {
-	    if (!isset($data[$param['group']])) {
-		$data[$param['group']] = [];
-	    }
+        foreach ($results as $param) {
+            if (!isset($data[$param['group']])) {
+                $data[$param['group']] = [];
+            }
 
-	    $data[$param['group']][$param['key']] = $param['value'];
-	}
+            $data[$param['group']][$param['key']] = $param['value'];
+        }
 
-	return $data;
+        return $data;
     }
 
     public static function getDataByGroup($group)
     {
         $results = Setting::where('group', $group)->get();
-	$data = [];
+        $data = [];
 
-	foreach ($results as $param) {
-	    $data[$param->key] = $param->value;
-	}
+        foreach ($results as $param) {
+            $data[$param->key] = $param->value;
+        }
 
-	return $data;
+        return $data;
     }
 
     public static function getItemSettings($item, $group)
     {
         // Get the global settings of the item.
-	$globalSettings = Setting::getDataByGroup($group);
-	$settings = [];
+        $globalSettings = Setting::getDataByGroup($group);
+        $settings = [];
 
-	foreach ($item->settings as $key => $value) {
-	    if ($value == 'global_setting') {
-	        // Overwrite with the item global setting value. 
-	        $settings[$key] = $globalSettings[$key];
-	    }
-	    else {
-	        $settings[$key] = $item->settings[$key];
-	    }
-	}
+        foreach ($item->settings as $key => $value) {
+            if ($value == 'global_setting') {
+                // Overwrite with the item global setting value. 
+                $settings[$key] = $globalSettings[$key];
+            }
+            else {
+                $settings[$key] = $item->settings[$key];
+            }
+        }
 
-	return $settings;
+        return $settings;
     }
 
     public static function getPostOrderingOptions()
     {
       return [
-	  ['value' => 'no_ordering', 'text' => __('labels.generic.no_ordering')],
-	  ['value' => 'title_asc', 'text' => __('labels.generic.title_asc')],
-	  ['value' => 'title_desc', 'text' => __('labels.generic.title_desc')],
-	  ['value' => 'created_at_asc', 'text' => __('labels.generic.created_at_asc')],
-	  ['value' => 'created_at_desc', 'text' => __('labels.generic.created_at_desc')],
-	  ['value' => 'updated_at_asc', 'text' => __('labels.generic.updated_at_asc')],
-	  ['value' => 'updated_at_desc', 'text' => __('labels.generic.updated_at_desc')],
-	  //['value' => 'ordering_asc', 'text' => __('labels.generic.ordering_asc')],
-	  //['value' => 'ordering_desc', 'text' => __('labels.generic.ordering_desc')],
+            ['value' => 'no_ordering', 'text' => __('labels.generic.no_ordering')],
+            ['value' => 'title_asc', 'text' => __('labels.generic.title_asc')],
+            ['value' => 'title_desc', 'text' => __('labels.generic.title_desc')],
+            ['value' => 'created_at_asc', 'text' => __('labels.generic.created_at_asc')],
+            ['value' => 'created_at_desc', 'text' => __('labels.generic.created_at_desc')],
+            ['value' => 'updated_at_asc', 'text' => __('labels.generic.updated_at_asc')],
+            ['value' => 'updated_at_desc', 'text' => __('labels.generic.updated_at_desc')],
+            //['value' => 'ordering_asc', 'text' => __('labels.generic.ordering_asc')],
+            //['value' => 'ordering_desc', 'text' => __('labels.generic.ordering_desc')],
       ];
     }
 }

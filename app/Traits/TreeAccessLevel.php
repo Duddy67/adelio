@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Traits\Admin;
+namespace App\Traits;
 
-use App\Traits\Admin\AccessLevel;
+use App\Traits\AccessLevel;
 
 
 trait TreeAccessLevel
@@ -23,33 +23,33 @@ trait TreeAccessLevel
 
     public function canDeleteDescendants()
     {
-	foreach ($this->descendants as $descendant) {
-	    if (!$descendant->canDelete()) {
-		return false;
-	    }
-	}
+        foreach ($this->descendants as $descendant) {
+            if (!$descendant->canDelete()) {
+                return false;
+            }
+        }
 
-	return true;
+        return true;
     }
 
     public function canDescendantsBePrivate()
     {
         // All the descendants must be owned by the parent owner.
-	foreach ($this->descendants as $descendant) {
-	    if ($descendant->owned_by != $this->owned_by) {
-	        return false;
-	    }
-	}
+        foreach ($this->descendants as $descendant) {
+            if ($descendant->owned_by != $this->owned_by) {
+                return false;
+            }
+        }
 
-	return true;
+        return true;
     }
 
     public function setDescendantAccessToPrivate()
     {
-	foreach ($this->descendants as $descendant) {
-	    $descendant->access_level = 'private';
-	    $descendant->save();
-	}
+        foreach ($this->descendants as $descendant) {
+            $descendant->access_level = 'private';
+            $descendant->save();
+        }
     }
 
     public function isParentPrivate()
@@ -57,4 +57,3 @@ trait TreeAccessLevel
         return ($this->getParentId() && get_class($this)::find($this->getParentId())->access_level == 'private') ? true : false;
     }
 }
-

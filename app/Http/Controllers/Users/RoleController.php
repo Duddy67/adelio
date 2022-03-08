@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Users;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Traits\Admin\ItemConfig;
-use App\Traits\Admin\CheckInCheckOut;
+use App\Traits\ItemConfig;
+use App\Traits\CheckInCheckOut;
 use App\Models\Users\Role;
 use App\Models\Users\Permission;
 use App\Models\Users\User;
@@ -164,50 +164,50 @@ class RoleController extends Controller
      */
     public function update(UpdateRequest $request, Role $role)
     {
-	if (in_array($role->id, Role::getDefaultRoleIds())) {
-	    return redirect()->route('users.roles.edit', $role->id)->with('error', __('messages.roles.cannot_update_default_roles'));
-	}
+        if (in_array($role->id, Role::getDefaultRoleIds())) {
+            return redirect()->route('users.roles.edit', $role->id)->with('error', __('messages.roles.cannot_update_default_roles'));
+        }
 
-	if (!$role->canEdit()) {
-	    return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('error',  __('messages.generic.edit_not_auth'));
-	}
+        if (!$role->canEdit()) {
+            return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('error',  __('messages.generic.edit_not_auth'));
+        }
 
-	$role->name = $request->input('name');
-	$role->updated_by = auth()->user()->id;
+        $role->name = $request->input('name');
+        $role->updated_by = auth()->user()->id;
 
-	// Ensure the current user has a higher role level than the item owner's or the current user is the item owner.
-	if (auth()->user()->getRoleLevel() > $role->getOwnerRoleLevel() || $role->owned_by == auth()->user()->id) {
-	    $role->owned_by = $request->input('owned_by');
-	    $role->access_level = $request->input('access_level');
-	}
+        // Ensure the current user has a higher role level than the item owner's or the current user is the item owner.
+        if (auth()->user()->getRoleLevel() > $role->getOwnerRoleLevel() || $role->owned_by == auth()->user()->id) {
+            $role->owned_by = $request->input('owned_by');
+            $role->access_level = $request->input('access_level');
+        }
 
-	$role->save();
+        $role->save();
 
-	// Set the permission list.
-	
-	$permissions = Permission::getPermissionsWithoutSections();
+        // Set the permission list.
+        
+        $permissions = Permission::getPermissionsWithoutSections();
 
-	foreach ($permissions as $permission) {
+        foreach ($permissions as $permission) {
 
-	    $optional = (isset($permission->optional) && preg_match('#'.$role->role_type.'#', $permission->optional)) ? true : false;
+            $optional = (isset($permission->optional) && preg_match('#'.$role->role_type.'#', $permission->optional)) ? true : false;
 
-	    // Check the optional permissions.
-	    // Note: No need to check the default role permissions since they have been set during the storing process and cannot be modified anymore.
+            // Check the optional permissions.
+            // Note: No need to check the default role permissions since they have been set during the storing process and cannot be modified anymore.
 
-	    if ($optional && in_array($permission->name, $request->input('permissions', [])) && !$role->hasPermissionTo($permission->name)) {
-		  $role->givePermissionTo($permission->name);
-	    }
-	    elseif ($optional && !in_array($permission->name, $request->input('permissions', [])) && $role->hasPermissionTo($permission->name)) {
-		 $role->revokePermissionTo($permission->name);
-	    }
-	}
+            if ($optional && in_array($permission->name, $request->input('permissions', [])) && !$role->hasPermissionTo($permission->name)) {
+                $role->givePermissionTo($permission->name);
+            }
+            elseif ($optional && !in_array($permission->name, $request->input('permissions', [])) && $role->hasPermissionTo($permission->name)) {
+                $role->revokePermissionTo($permission->name);
+            }
+        }
 
         if ($request->input('_close', null)) {
-	    $role->checkIn();
-	    return redirect()->route('users.roles.index', $request->query())->with('success', __('messages.roles.update_success'));
-	}
+            $role->checkIn();
+            return redirect()->route('users.roles.index', $request->query())->with('success', __('messages.roles.update_success'));
+        }
 
-	return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('success', __('messages.roles.update_success'));
+        return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('success', __('messages.roles.update_success'));
      
     }
 
@@ -219,51 +219,51 @@ class RoleController extends Controller
      */
     public function store(StoreRequest $request)
     {
-	// Ensure first that an admin doesn't use any level1 permissions (ie: super-admin's permissions). 
-	$level1Perms = Permission::getPermissionNameList(['level2', 'level3']);
-	$count = array_intersect($request->input('permissions', []), $level1Perms);
+        // Ensure first that an admin doesn't use any level1 permissions (ie: super-admin's permissions). 
+        $level1Perms = Permission::getPermissionNameList(['level2', 'level3']);
+        $count = array_intersect($request->input('permissions', []), $level1Perms);
 
-	if (auth()->user()->getRoleType() == 'admin' && $count) {
-	    return redirect()->route('users.roles.edit', $role->id)->with('error', __('messages.roles.permission_not_auth'));
-	}
+        if (auth()->user()->getRoleType() == 'admin' && $count) {
+            return redirect()->route('users.roles.edit', $role->id)->with('error', __('messages.roles.permission_not_auth'));
+        }
 
-	$permissions = Permission::getPermissionsWithoutSections();
-	$toGiveTo = [];
+        $permissions = Permission::getPermissionsWithoutSections();
+        $toGiveTo = [];
 
-	foreach ($permissions as $permission) {
+        foreach ($permissions as $permission) {
 
-	    $roles = (preg_match('#'.$request->input('role_type').'#', $permission->roles)) ? true : false;
-	    $optional = (isset($permission->optional) && preg_match('#'.$request->input('role_type').'#', $permission->optional)) ? true : false;
+            $roles = (preg_match('#'.$request->input('role_type').'#', $permission->roles)) ? true : false;
+            $optional = (isset($permission->optional) && preg_match('#'.$request->input('role_type').'#', $permission->optional)) ? true : false;
 
-	    if ($roles && !$optional) {
-		 $toGiveTo[] = $permission;
-	    }
-	    elseif ($optional && in_array($permission->name, $request->input('permissions', []))) {
-		 $toGiveTo[] = $permission;
-	    }
-	}
+            if ($roles && !$optional) {
+                $toGiveTo[] = $permission;
+            }
+            elseif ($optional && in_array($permission->name, $request->input('permissions', []))) {
+                $toGiveTo[] = $permission;
+            }
+        }
 
-	$role = Role::create([
-	    'name' => $request->input('name'),
-	    'access_level' => $request->input('access_level'),
-	    'owned_by' => $request->input('owned_by', auth()->user()->id)
-	]);
+        $role = Role::create([
+            'name' => $request->input('name'),
+            'access_level' => $request->input('access_level'),
+            'owned_by' => $request->input('owned_by', auth()->user()->id)
+        ]);
 
         foreach ($toGiveTo as $permission) {
-	    $role->givePermissionTo($permission->name);
-	}
+            $role->givePermissionTo($permission->name);
+        }
 
-	// Set the role attributes.
-	$role->role_type = $request->input('role_type');
-	$role->role_level = Role::getRoleHierarchy()[$role->role_type];
+        // Set the role attributes.
+        $role->role_type = $request->input('role_type');
+        $role->role_level = Role::getRoleHierarchy()[$role->role_type];
 
-	$role->save();
+        $role->save();
 
         if ($request->input('_close', null)) {
-	    return redirect()->route('users.roles.index', $request->query())->with('success', __('messages.roles.create_success'));
-	}
+            return redirect()->route('users.roles.index', $request->query())->with('success', __('messages.roles.create_success'));
+        }
 
-	return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('success', __('messages.roles.create_success'));
+        return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('success', __('messages.roles.create_success'));
     }
 
     /**
@@ -275,22 +275,22 @@ class RoleController extends Controller
      */
     public function destroy(Request $request, Role $role)
     {
-	if (!$role->canDelete()) {
-	    return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('error',  __('messages.generic.delete_not_auth'));
-	}
+        if (!$role->canDelete()) {
+            return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('error',  __('messages.generic.delete_not_auth'));
+        }
 
-	if (in_array($role->name, Role::getDefaultRoles())) {
-	    return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('error', __('messages.roles.cannot_delete_default_roles'));
-	}
+        if (in_array($role->name, Role::getDefaultRoles())) {
+            return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('error', __('messages.roles.cannot_delete_default_roles'));
+        }
 
-	if ($role->users->count()) {
-	    return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('error', __('messages.roles.users_assigned_to_roles', ['name' => $role->name]));
-	}
+        if ($role->users->count()) {
+            return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $role->id]))->with('error', __('messages.roles.users_assigned_to_roles', ['name' => $role->name]));
+        }
 
-	$name = $role->name;
-	$role->delete();
+        $name = $role->name;
+        $role->delete();
 
-	return redirect()->route('users.roles.index', $request->query())->with('success', __('messages.roles.delete_success', ['name' => $name]));
+        return redirect()->route('users.roles.index', $request->query())->with('success', __('messages.roles.delete_success', ['name' => $name]));
     }
 
     /**
@@ -301,37 +301,37 @@ class RoleController extends Controller
      */
     public function massDestroy(Request $request)
     {
-	// Check first for default roles.
+        // Check first for default roles.
         $roles = Role::whereIn('id', $request->input('ids'))->pluck('name')->toArray();
-	$result = array_intersect($roles, Role::getDefaultRoles());
+        $result = array_intersect($roles, Role::getDefaultRoles());
 
-	if (!empty($result)) {
-	    return redirect()->route('users.roles.index', $request->query())->with('error',  __('messages.roles.cannot_delete_roles', ['roles' => implode(',', $result)]));
-	}
+        if (!empty($result)) {
+            return redirect()->route('users.roles.index', $request->query())->with('error',  __('messages.roles.cannot_delete_roles', ['roles' => implode(',', $result)]));
+        }
 
-	$roles = [];
+        $roles = [];
 
-	// Then check for dependencies and permissions.
-	foreach ($request->input('ids') as $id) {
-	    $role = Role::findOrFail($id);
+        // Then check for dependencies and permissions.
+        foreach ($request->input('ids') as $id) {
+            $role = Role::findOrFail($id);
 
-	    if ($role->users->count()) {
-	        // Some users are already assigned to this role.
-		return redirect()->route('users.roles.index', $request->query())->with('error', __('messages.roles.users_assigned_to_roles', ['name' => $role->name]));
-	    }
+            if ($role->users->count()) {
+                // Some users are already assigned to this role.
+                return redirect()->route('users.roles.index', $request->query())->with('error', __('messages.roles.users_assigned_to_roles', ['name' => $role->name]));
+            }
 
-	    if (!$role->canDelete()) {
-		return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $id]))->with('error',  __('messages.generic.delete_not_auth'));
-	    }
+            if (!$role->canDelete()) {
+                return redirect()->route('users.roles.edit', array_merge($request->query(), ['role' => $id]))->with('error',  __('messages.generic.delete_not_auth'));
+            }
 
-	    $roles[] = $role;
-	}
+            $roles[] = $role;
+        }
 
-	foreach ($roles as $role) {
-	    $role->delete();
-	}
+        foreach ($roles as $role) {
+            $role->delete();
+        }
 
-	return redirect()->route('users.roles.index', $request->query())->with('success', __('messages.roles.delete_list_success', ['number' => count($request->input('ids'))]));
+        return redirect()->route('users.roles.index', $request->query())->with('success', __('messages.roles.delete_list_success', ['number' => count($request->input('ids'))]));
     }
 
     /**
@@ -344,7 +344,7 @@ class RoleController extends Controller
     {
         $messages = CheckInCheckOut::checkInMultiple($request->input('ids'), '\\App\\Models\\Users\\Role');
 
-	return redirect()->route('users.roles.index', $request->query())->with($messages);
+        return redirect()->route('users.roles.index', $request->query())->with($messages);
     }
 
     /*
@@ -355,69 +355,69 @@ class RoleController extends Controller
         // N.B: Only the super-admin and the users type admin are allowed to manage roles.
 
         $userRoleLevel = auth()->user()->getRoleLevel();
-	$hierarchy = Role::getRoleHierarchy();
-	$isDefault = ($role && in_array($role->id, Role::getDefaultRoleIds())) ? true : false;
+        $hierarchy = Role::getRoleHierarchy();
+        $isDefault = ($role && in_array($role->id, Role::getDefaultRoleIds())) ? true : false;
 
-	if (auth()->user()->getRoleType() == 'admin' && !$isDefault) {
-	    // Restrict permissions for users type admin.
-	    $permList = Permission::getPermissionList(['level1']);
-	}
-	// super-admin
-	else {
-	    $permList = Permission::getPermissionList();
-	}
+        if (auth()->user()->getRoleType() == 'admin' && !$isDefault) {
+            // Restrict permissions for users type admin.
+            $permList = Permission::getPermissionList(['level1']);
+        }
+        // super-admin
+        else {
+            $permList = Permission::getPermissionList();
+        }
 
-	$list = [];
+        $list = [];
 
-	foreach ($permList as $section => $permissions) {
-	    $list[$section] = [];
+        foreach ($permList as $section => $permissions) {
+            $list[$section] = [];
 
-	    foreach ($permissions as $permission) {
-		$checkbox = new \stdClass();
-		$checkbox->type = 'checkbox';
-		$checkbox->label = $permission->name;
-		$checkbox->position = 'right';
-		$checkbox->id = $permission->name;
-		$checkbox->name = 'permissions[]';
-		$checkbox->value = $permission->name;
-		$checkbox->dataset = ['section' => $section];
-		$checkbox->checked = false;
+            foreach ($permissions as $permission) {
+                $checkbox = new \stdClass();
+                $checkbox->type = 'checkbox';
+                $checkbox->label = $permission->name;
+                $checkbox->position = 'right';
+                $checkbox->id = $permission->name;
+                $checkbox->name = 'permissions[]';
+                $checkbox->value = $permission->name;
+                $checkbox->dataset = ['section' => $section];
+                $checkbox->checked = false;
 
-		if ($role) {
-		    try {
-			if ($role->hasPermissionTo($permission->name)) {
-			    $checkbox->checked = true;
-			}
+                if ($role) {
+                    try {
+                        if ($role->hasPermissionTo($permission->name)) {
+                            $checkbox->checked = true;
+                        }
 
-			$optional = (isset($permission->optional)) ? explode('|', $permission->optional) : [];
-			$checkbox->disabled = (in_array($role->role_type, $optional)) ? false : true;
-		    }
-		    catch (\Exception $e) {
-			$checkbox->label = $permission->name.' (missing !)';
-			$checkbox->disabled = true;
-			$list[$section][] = $checkbox;
+                        $optional = (isset($permission->optional)) ? explode('|', $permission->optional) : [];
+                        $checkbox->disabled = (in_array($role->role_type, $optional)) ? false : true;
+                    }
+                    catch (\Exception $e) {
+                        $checkbox->label = $permission->name.' (missing !)';
+                        $checkbox->disabled = true;
+                        $list[$section][] = $checkbox;
 
-		        continue;
-		    }
+                        continue;
+                    }
 
-		    // Disable permissions according to the edited role type.
+                    // Disable permissions according to the edited role type.
 
-		    if ($role->name == 'super-admin') {
-		        // super-admin has all permissions.
-			$checkbox->checked = true;
-			$role->role_type = 'super-admin';
-		    }
+                    if ($role->name == 'super-admin') {
+                        // super-admin has all permissions.
+                        $checkbox->checked = true;
+                        $role->role_type = 'super-admin';
+                    }
 
-		    if (($role->getOwnerRoleLevel() >= $userRoleLevel && $role->access_level != 'public_rw') || in_array($role->name, Role::getDefaultRoles())) {
-			$checkbox->disabled = true;
-		    }
-		}
+                    if (($role->getOwnerRoleLevel() >= $userRoleLevel && $role->access_level != 'public_rw') || in_array($role->name, Role::getDefaultRoles())) {
+                        $checkbox->disabled = true;
+                    }
+                }
 
-		$list[$section][] = $checkbox;
-	    }
-	}
+                $list[$section][] = $checkbox;
+            }
+        }
 
-	return $list;
+        return $list;
     }
 
     /*
@@ -431,16 +431,16 @@ class RoleController extends Controller
     private function setRowValues(&$rows, $columns, $roles)
     {
         foreach ($roles as $key => $role) {
-	    foreach ($columns as $column) {
-	        if ($column->name == 'access_level' && in_array($role->id, Role::getDefaultRoleIds())) {
-		    $rows[$key]->access_level = __('labels.generic.public_ro');
-		}
+            foreach ($columns as $column) {
+                if ($column->name == 'access_level' && in_array($role->id, Role::getDefaultRoleIds())) {
+                    $rows[$key]->access_level = __('labels.generic.public_ro');
+                }
 
-	        if ($column->name == 'owned_by' && in_array($role->id, Role::getDefaultRoleIds())) {
-		    $rows[$key]->owned_by = __('labels.generic.system');
-		}
-	    }
-	}
+                if ($column->name == 'owned_by' && in_array($role->id, Role::getDefaultRoleIds())) {
+                    $rows[$key]->owned_by = __('labels.generic.system');
+                }
+            }
+        }
     }
 
     /*
@@ -453,14 +453,14 @@ class RoleController extends Controller
     private function setFieldValues(&$fields, $role)
     {
         foreach ($fields as $field) {
-	    if ($field->name == 'role_type') {
-		// Role type value cannot be changed again.
-		$field = $this->setExtraAttributes($field, ['disabled']);
-	    }
+            if ($field->name == 'role_type') {
+                // Role type value cannot be changed again.
+                $field = $this->setExtraAttributes($field, ['disabled']);
+            }
 
-	    if ($field->name == 'name' && in_array($role->name, Role::getDefaultRoles())) {
-		$field = $this->setExtraAttributes($field, ['disabled']);
-	    }
-	}
+            if ($field->name == 'name' && in_array($role->name, Role::getDefaultRoles())) {
+                $field = $this->setExtraAttributes($field, ['disabled']);
+            }
+        }
     }
 }

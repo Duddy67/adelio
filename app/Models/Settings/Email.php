@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Mail\AppMailer;
 use Illuminate\Support\Facades\Mail;
-use App\Traits\Admin\CheckInCheckOut;
+use App\Traits\CheckInCheckOut;
 
 
 class Email extends Model
@@ -43,11 +43,11 @@ class Email extends Model
     public function save(array $options = [])
     {
         // Replace the HTML entities set by the editor in the code placeholders (eg: {{ $data-&gt;name }}).
-	$this->body_html = preg_replace('#({{.+)-&gt;(.+}})#', '$1->$2', $this->body_html);
+        $this->body_html = preg_replace('#({{.+)-&gt;(.+}})#', '$1->$2', $this->body_html);
 
         parent::save($options);
 
-	$this->setViewFiles();
+        $this->setViewFiles();
     }
 
     /*
@@ -59,9 +59,9 @@ class Email extends Model
 
         parent::delete();
 
-	// Delete template files associated with the model.
-	unlink(resource_path().'/views/emails/'.$code.'.blade.php');
-	unlink(resource_path().'/views/emails/'.$code.'_plain.blade.php');
+        // Delete template files associated with the model.
+        unlink(resource_path().'/views/emails/'.$code.'.blade.php');
+        unlink(resource_path().'/views/emails/'.$code.'_plain.blade.php');
     }
 
     /*
@@ -70,15 +70,15 @@ class Email extends Model
     private function setViewFiles()
     {
         if (!file_exists(resource_path().'/views/emails')) {
-	    mkdir(resource_path().'/views/emails', 0755, true);
-	}
+            mkdir(resource_path().'/views/emails', 0755, true);
+        }
 
-        // Name the email template after the code attribute.
-	$html = resource_path().'/views/emails/'.$this->code.'.blade.php';
-	$text = resource_path().'/views/emails/'.$this->code.'_plain.blade.php';
+            // Name the email template after the code attribute.
+        $html = resource_path().'/views/emails/'.$this->code.'.blade.php';
+        $text = resource_path().'/views/emails/'.$this->code.'_plain.blade.php';
 
-	file_put_contents($html, $this->body_html);
-	file_put_contents($text, $this->body_text);
+        file_put_contents($html, $this->body_html);
+        file_put_contents($text, $this->body_text);
     }
 
     /*
@@ -90,16 +90,16 @@ class Email extends Model
         $search = $request->input('search', null);
         $sortedBy = $request->input('sorted_by', null);
 
-	$query = Email::query();
+        $query = Email::query();
 
-	if ($search !== null) {
-	    $query->where('code', 'like', '%'.$search.'%');
-	}
+        if ($search !== null) {
+            $query->where('code', 'like', '%'.$search.'%');
+        }
 
-	if ($sortedBy !== null) {
-	    preg_match('#^([a-z0-9_]+)_(asc|desc)$#', $sortedBy, $matches);
-	    $query->orderBy($matches[1], $matches[2]);
-	}
+        if ($sortedBy !== null) {
+            preg_match('#^([a-z0-9_]+)_(asc|desc)$#', $sortedBy, $matches);
+            $query->orderBy($matches[1], $matches[2]);
+        }
 
         return $query->paginate($perPage);
     }
@@ -110,9 +110,9 @@ class Email extends Model
     public function getFormatOptions()
     {
         return [
-	    ['value' => 'plain_text', 'text' => 'Plain text'], 
-	    ['value' => 'html', 'text' => 'HTML']
-	];
+            ['value' => 'plain_text', 'text' => 'Plain text'], 
+            ['value' => 'html', 'text' => 'HTML']
+        ];
     }
 
     /*
@@ -121,11 +121,11 @@ class Email extends Model
     public function getSelectedValue($fieldName)
     {
         if ($fieldName == 'format') {
-	    return ($this->plain_text) ? 'plain_text' : 'html';
-	}
-	else {
-	    return $this->{$fieldName};
-	}
+            return ($this->plain_text) ? 'plain_text' : 'html';
+        }
+        else {
+            return $this->{$fieldName};
+        }
     }
 
     /*
@@ -136,13 +136,13 @@ class Email extends Model
      */
     public static function sendEmail($code, $data)
     {
-	$email = Email::where('code', $code)->first();
-	$data->subject = self::parseSubject($email->subject, $data);
+        $email = Email::where('code', $code)->first();
+        $data->subject = self::parseSubject($email->subject, $data);
 
-	// Use the email attribute as recipient in case the recipient attribute doesn't exist.
-	$recipient = (!isset($data->recipient) && isset($data->email)) ? $data->email : $data->recipient;
-	$data->view = 'emails.'.$code;
-	Mail::to($recipient)->send(new AppMailer($data));
+        // Use the email attribute as recipient in case the recipient attribute doesn't exist.
+        $recipient = (!isset($data->recipient) && isset($data->email)) ? $data->email : $data->recipient;
+        $data->view = 'emails.'.$code;
+        Mail::to($recipient)->send(new AppMailer($data));
     }
 
     /*
@@ -155,22 +155,22 @@ class Email extends Model
     {
         // Looks for Blade variables (eg: {{ $data->email }}).
         if (preg_match_all('#{{\s?[\$a-zA-Z0-9\-\>]+\s?}}#U', $subject, $matches)) {
-	    $results = $matches[0];
-	    $patterns = $replacements = [];
+            $results = $matches[0];
+            $patterns = $replacements = [];
 
-	    foreach ($results as $result) {
-	        // Gets the attribute name (eg: email).
-		preg_match('#^{{\s?\$[a-zA-Z0-9_]+->([a-zA-Z0-9_]+)\s?}}$#', $result, $matches);
-		$attribute  = $matches[1];
-		// Stores the variable value.
-		$replacements[] = $data->$attribute;
-		// Stores the corresponding Blade variable.
-		$patterns[] = '#({{\s?\$[a-zA-Z0-9_]+->'.$attribute.'\s?}})#';
-	    }
+            foreach ($results as $result) {
+                // Gets the attribute name (eg: email).
+                preg_match('#^{{\s?\$[a-zA-Z0-9_]+->([a-zA-Z0-9_]+)\s?}}$#', $result, $matches);
+                $attribute  = $matches[1];
+                // Stores the variable value.
+                $replacements[] = $data->$attribute;
+                // Stores the corresponding Blade variable.
+                $patterns[] = '#({{\s?\$[a-zA-Z0-9_]+->'.$attribute.'\s?}})#';
+            }
 
-	    return preg_replace($patterns, $replacements, $subject);
-	}
+            return preg_replace($patterns, $replacements, $subject);
+        }
 
-	return $subject;
+        return $subject;
     }
 }

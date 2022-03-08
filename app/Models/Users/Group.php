@@ -9,8 +9,8 @@ use App\Models\Blog\Post;
 use App\Models\Blog\Category;
 use App\Models\Menus\Menu;
 use App\Models\Settings\General;
-use App\Traits\Admin\AccessLevel;
-use App\Traits\Admin\CheckInCheckOut;
+use App\Traits\AccessLevel;
+use App\Traits\CheckInCheckOut;
 
 
 class Group extends Model
@@ -81,7 +81,7 @@ class Group extends Model
      */
     public function delete()
     {
-	$this->users()->detach();
+        $this->users()->detach();
         parent::delete();
     }
 
@@ -96,47 +96,47 @@ class Group extends Model
         $ownedBy = $request->input('owned_by', null);
         $permission = $request->input('permission', null);
 
-	$query = Group::query();
-	$query->select('groups.*', 'users.name as owner_name')->leftJoin('users', 'groups.owned_by', '=', 'users.id');
-	// Join the role tables to get the owner's role level.
-	$query->join('model_has_roles', 'groups.owned_by', '=', 'model_id')->join('roles', 'roles.id', '=', 'role_id');
+        $query = Group::query();
+        $query->select('groups.*', 'users.name as owner_name')->leftJoin('users', 'groups.owned_by', '=', 'users.id');
+        // Join the role tables to get the owner's role level.
+        $query->join('model_has_roles', 'groups.owned_by', '=', 'model_id')->join('roles', 'roles.id', '=', 'role_id');
 
-	if ($search !== null) {
-	    $query->where('groups.name', 'like', '%'.$search.'%');
-	}
+        if ($search !== null) {
+            $query->where('groups.name', 'like', '%'.$search.'%');
+        }
 
-	if ($sortedBy !== null) {
-	    preg_match('#^([a-z0-9_]+)_(asc|desc)$#', $sortedBy, $matches);
-	    $query->orderBy($matches[1], $matches[2]);
-	}
+        if ($sortedBy !== null) {
+            preg_match('#^([a-z0-9_]+)_(asc|desc)$#', $sortedBy, $matches);
+            $query->orderBy($matches[1], $matches[2]);
+        }
 
-	if ($ownedBy !== null) {
-	    $query->whereIn('groups.owned_by', $ownedBy);
-	}
+        if ($ownedBy !== null) {
+            $query->whereIn('groups.owned_by', $ownedBy);
+        }
 
-	if ($permission !== null) {
-	    $query->where('groups.permission', $permission);
-	}
+        if ($permission !== null) {
+            $query->where('groups.permission', $permission);
+        }
 
-	$query->where(function($query) {
-	    $query->where('roles.role_level', '<', auth()->user()->getRoleLevel())
-		  ->orWhereIn('groups.access_level', ['public_ro', 'public_rw'])
-		  ->orWhere('groups.owned_by', auth()->user()->id);
-	});
+        $query->where(function($query) {
+            $query->where('roles.role_level', '<', auth()->user()->getRoleLevel())
+            ->orWhereIn('groups.access_level', ['public_ro', 'public_rw'])
+            ->orWhere('groups.owned_by', auth()->user()->id);
+        });
 
         return $query->paginate($perPage);
     }
 
     public function getOwnedByOptions()
     {
-	$users = auth()->user()->getAssignableUsers(['assistant', 'registered']);
-	$options = [];
+        $users = auth()->user()->getAssignableUsers(['assistant', 'registered']);
+        $options = [];
 
-	foreach ($users as $user) {
-	    $options[] = ['value' => $user->id, 'text' => $user->name];
-	}
+        foreach ($users as $user) {
+            $options[] = ['value' => $user->id, 'text' => $user->name];
+        }
 
-	return $options;
+        return $options;
     }
 
     public function getPermissionOptions()
@@ -144,7 +144,7 @@ class Group extends Model
         return [
             ['value' => 'read_only', 'text' => __('labels.generic.read_only')],
             ['value' => 'read_write', 'text' => __('labels.generic.read_write')],
-	];
+        ];
     }
 
     /*
@@ -152,7 +152,7 @@ class Group extends Model
      */
     public function getSelectedValue($fieldName)
     {
-	return $this->{$fieldName};
+        return $this->{$fieldName};
     }
 
     /*
@@ -163,12 +163,12 @@ class Group extends Model
      */
     public static function getPrivateGroups($item)
     {
-	return $item->groups()->join('model_has_roles', 'groups.owned_by', '=', 'model_id')
-			      ->join('roles', 'roles.id', '=', 'role_id')
-			      ->where([
-					  ['groups.access_level', '=', 'private'], 
-					  ['roles.role_level', '>=', auth()->user()->getRoleLevel()],
-					  ['groups.owned_by', '!=', auth()->user()->id]
-				      ])->pluck('groups.id')->toArray();
+        return $item->groups()->join('model_has_roles', 'groups.owned_by', '=', 'model_id')
+                    ->join('roles', 'roles.id', '=', 'role_id')
+                    ->where([
+                        ['groups.access_level', '=', 'private'], 
+                        ['roles.role_level', '>=', auth()->user()->getRoleLevel()],
+                        ['groups.owned_by', '!=', auth()->user()->id]
+                    ])->pluck('groups.id')->toArray();
     }
 }

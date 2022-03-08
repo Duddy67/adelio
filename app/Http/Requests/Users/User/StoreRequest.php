@@ -25,11 +25,11 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-	    'name' => 'bail|required|between:5,25|regex:/^[\pL\s\-]+$/u',
-	    'email' => 'bail|required|email|unique:users',
-	    'password' => 'required|confirmed|min:8',
-	    'role' => 'required',
-	    'photo' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=1000,max_height=1000'],
+            'name' => 'bail|required|between:5,25|regex:/^[\pL\s\-]+$/u',
+            'email' => 'bail|required|email|unique:users',
+            'password' => 'required|confirmed|min:8',
+            'role' => 'required',
+            'photo' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=1000,max_height=1000'],
         ];
     }
 }

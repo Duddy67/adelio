@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Blog;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Blog\Setting;
-use App\Traits\Admin\ItemConfig;
+use App\Traits\ItemConfig;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Artisan;

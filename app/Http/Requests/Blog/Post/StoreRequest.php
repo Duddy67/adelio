@@ -24,12 +24,12 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-	    'title' => 'required',
-	    'status' => 'required',
-	    'access_level' => 'required',
-	    'owned_by' => 'required',
-	    'content' => 'required',
-	    'image' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=1000,max_height=1000'],
+            'title' => 'required',
+            'status' => 'required',
+            'access_level' => 'required',
+            'owned_by' => 'required',
+            'content' => 'required',
+            'image' => ['nullable', 'image', 'mimes:jpg,png,jpeg,gif,svg', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=1000,max_height=1000'],
         ];
     }
 }

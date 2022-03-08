@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Models\Role as SpatieRole;
 use App\Models\Settings\General;
-use App\Traits\Admin\AccessLevel;
-use App\Traits\Admin\CheckInCheckOut;
+use App\Traits\AccessLevel;
+use App\Traits\CheckInCheckOut;
 use Carbon\Carbon;
 
 
@@ -35,12 +35,12 @@ class Role extends SpatieRole
     public static function getDefaultRoles()
     {
         return [
-	    'super-admin',
-	    'admin',
-	    'manager',
-	    'assistant',
-	    'registered'
-	];
+            'super-admin',
+            'admin',
+            'manager',
+            'assistant',
+            'registered'
+        ];
     }
 
     /*
@@ -60,13 +60,13 @@ class Role extends SpatieRole
      */
     public static function getRoleHierarchy()
     {
-	return [
-	    'registered' => 1, 
-	    'assistant' => 2, 
-	    'manager' => 3, 
-	    'admin' => 4, 
-	    'super-admin' => 5
-	];
+        return [
+            'registered' => 1, 
+            'assistant' => 2, 
+            'manager' => 3, 
+            'admin' => 4, 
+            'super-admin' => 5
+        ];
     }
 
     /*
@@ -76,18 +76,18 @@ class Role extends SpatieRole
      */
     public function defineRoleType()
     {
-	if ($this->hasPermissionTo('create-role')) {
-	    return 'admin';
-	}
-	elseif ($this->hasPermissionTo('create-user')) {
-	    return 'manager';
-	}
-	elseif ($this->hasPermissionTo('access-dashboard')) {
-	    return 'assistant';
-	}
-	else {
-	    return 'registered';
-	}
+        if ($this->hasPermissionTo('create-role')) {
+            return 'admin';
+        }
+        elseif ($this->hasPermissionTo('create-user')) {
+            return 'manager';
+        }
+        elseif ($this->hasPermissionTo('access-dashboard')) {
+            return 'assistant';
+        }
+        else {
+            return 'registered';
+        }
     }
 
     /*
@@ -101,12 +101,12 @@ class Role extends SpatieRole
         $perPage = $request->input('per_page', General::getValue('pagination', 'per_page'));
         $search = $request->input('search', null);
 
-	$query = Role::query();
-	$query->select('roles.*', 'users.name as owner_name')->leftJoin('users', 'roles.owned_by', '=', 'users.id');
+        $query = Role::query();
+        $query->select('roles.*', 'users.name as owner_name')->leftJoin('users', 'roles.owned_by', '=', 'users.id');
 
-	if ($search !== null) {
-	    $query->where('roles.name', 'like', '%'.$search.'%');
-	}
+        if ($search !== null) {
+            $query->where('roles.name', 'like', '%'.$search.'%');
+        }
 
         return $query->paginate($perPage);
     }
@@ -119,14 +119,14 @@ class Role extends SpatieRole
     public static function getOwnedByOptions()
     {
         // Get only users with admin role types.
-	$users = auth()->user()->getAssignableUsers(['manager', 'assistant', 'registered']);
-	$options = [];
+        $users = auth()->user()->getAssignableUsers(['manager', 'assistant', 'registered']);
+        $options = [];
 
-	foreach ($users as $user) {
-	    $options[] = ['value' => $user->id, 'text' => $user->name];
-	}
+        foreach ($users as $user) {
+            $options[] = ['value' => $user->id, 'text' => $user->name];
+        }
 
-	return $options;
+        return $options;
     }
 
     public static function getRoleTypeOptions()
@@ -135,13 +135,13 @@ class Role extends SpatieRole
             ['value' => 'registered', 'text' => __('labels.roles.registered')],
             ['value' => 'assistant', 'text' => __('labels.roles.assistant')],
             ['value' => 'manager', 'text' => __('labels.roles.manager')]
-	];
+        ];
 
-	if (auth()->user()->getRoleName() == 'super-admin') {
-	    $roles[] = ['value' => 'admin', 'text' => __('labels.roles.admin')];
-	}
+        if (auth()->user()->getRoleName() == 'super-admin') {
+            $roles[] = ['value' => 'admin', 'text' => __('labels.roles.admin')];
+        }
 
-	return $roles;
+        return $roles;
     }
 
     /*

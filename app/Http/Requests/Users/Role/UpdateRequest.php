@@ -5,7 +5,7 @@ namespace App\Http\Requests\Users\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Models\Users\Role;
-use App\Traits\Admin\AccessLevel;
+use App\Traits\AccessLevel;
 
 
 class UpdateRequest extends FormRequest
@@ -30,19 +30,19 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         $rules = [
-	    'name' => [
-		'required',
-		'not_regex:/^('.implode('|', Role::getDefaultRoles()).')$/i',
-		'regex:/^[a-z0-9-]{3,}$/',
-		Rule::unique('roles')->ignore($this->role->id)
-	    ],
+            'name' => [
+                'required',
+                'not_regex:/^('.implode('|', Role::getDefaultRoles()).')$/i',
+                'regex:/^[a-z0-9-]{3,}$/',
+                Rule::unique('roles')->ignore($this->role->id)
+            ],
         ];
 
-	if (auth()->user()->getRoleLevel() > $this->role->getOwnerRoleLevel() || $this->role->owned_by == auth()->user()->id) {
-	    $rules['access_level'] = 'required';
-	    $rules['owned_by'] = 'required';
-	}
+        if (auth()->user()->getRoleLevel() > $this->role->getOwnerRoleLevel() || $this->role->owned_by == auth()->user()->id) {
+            $rules['access_level'] = 'required';
+            $rules['owned_by'] = 'required';
+        }
 
-	return $rules;
+        return $rules;
     }
 }
